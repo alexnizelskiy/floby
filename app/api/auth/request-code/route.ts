@@ -33,6 +33,8 @@ export async function POST(request: Request) {
 
   const sms = await sendSms(phone, `Ваш код для входа в floby: ${code}`);
 
-  // In dev (no SMS provider) return the code so the flow is testable.
-  return NextResponse.json({ ok: true, dev: sms.dev, ...(sms.dev ? { devCode: code } : {}) });
+  // Only leak the code outside production (local testing). In production the
+  // code is never returned — SMSC must be configured for login to work.
+  const leak = sms.dev && process.env.NODE_ENV !== "production";
+  return NextResponse.json({ ok: true, dev: leak, ...(leak ? { devCode: code } : {}) });
 }
