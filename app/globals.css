@@ -1,0 +1,251 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/*
+  Digit fix: Raleway (Google) ships no tabular figures, so numbers "jump"
+  when values change. Involve has uniform-width digits, so we map only the
+  digit range to Involve while letters stay Raleway. One source of truth.
+*/
+@font-face {
+  font-family: "InvolveNum";
+  src: url("/fonts/involve/Involve-Regular.ttf") format("truetype");
+  font-weight: 300 500;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0030-0039;
+}
+@font-face {
+  font-family: "InvolveNum";
+  src: url("/fonts/involve/Involve-SemiBold.ttf") format("truetype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0030-0039;
+}
+@font-face {
+  font-family: "InvolveNum";
+  src: url("/fonts/involve/Involve-Bold.ttf") format("truetype");
+  font-weight: 700 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0030-0039;
+}
+
+/*
+  ────────────────────────────────────────────────────────────────
+  floby — design tokens
+  Swap the brand palette here (the --brand-* scale + --primary) to
+  match Figma. Everything else derives from these variables.
+  ────────────────────────────────────────────────────────────────
+*/
+
+:root {
+  /* Brand scale — floby green (from Figma: logo #23b059, active #00b368) */
+  --brand-50: #e9f9ef;
+  --brand-100: #c9f1d8;
+  --brand-200: #99e4b6;
+  --brand-300: #5fd28e;
+  --brand-400: #2fbd6c;
+  --brand-500: #23b059;
+  --brand-600: #1a9a4c;
+  --brand-700: #167f40;
+  --brand-800: #166536;
+  --brand-900: #13512d;
+  --brand-950: #052b18;
+
+  /* Bright accent green used for active links (Figma #00b368) */
+  --brand-accent: #00b368;
+
+  /* Deep ink — Figma text color #090825 */
+  --ink-950: #090825;
+  --ink-900: #14132f;
+  --ink-800: #24233f;
+
+  /* Semantic tokens (light) */
+  --background: #ffffff;
+  --surface: #f5faf6;
+  --surface-strong: #edf5ef;
+  --foreground: #090825;
+  --muted: #f1f4f2;
+  --muted-foreground: #6b6f7d;
+  --card: #ffffff;
+  --card-foreground: #090825;
+  --popover: #ffffff;
+  --popover-foreground: #090825;
+
+  --primary: var(--brand-500);
+  --primary-hover: var(--brand-600);
+  --primary-foreground: #ffffff;
+
+  --secondary: #edf5ef;
+  --secondary-foreground: #165c34;
+
+  --accent: var(--brand-50);
+  --accent-foreground: var(--brand-800);
+
+  --border: #e3ede7;
+  --input: #e3ede7;
+  --ring: var(--brand-500);
+
+  --success: #16a34a;
+  --warning: #f59e0b;
+  --destructive: #e11d48;
+
+  --radius: 1rem;
+
+  --shadow-sm: 0 1px 2px 0 rgb(10 20 13 / 0.05);
+  --shadow-md: 0 8px 24px -8px rgb(10 20 13 / 0.12);
+  --shadow-lg: 0 24px 60px -20px rgb(10 20 13 / 0.2);
+  --shadow-brand: 0 18px 40px -14px rgb(30 174 84 / 0.4);
+}
+
+.dark {
+  --background: #0a140d;
+  --surface: #10201a;
+  --surface-strong: #16291f;
+  --foreground: #eaf5ee;
+  --muted: #1a3026;
+  --muted-foreground: #96ad9f;
+  --card: #10201a;
+  --card-foreground: #eaf5ee;
+  --popover: #10201a;
+  --popover-foreground: #eaf5ee;
+
+  --primary: var(--brand-400);
+  --primary-hover: var(--brand-300);
+  --primary-foreground: #04200f;
+
+  --secondary: #1a3026;
+  --secondary-foreground: #a8efc4;
+
+  --accent: #16291f;
+  --accent-foreground: #a8efc4;
+
+  --border: #1e3a2b;
+  --input: #1e3a2b;
+  --ring: var(--brand-400);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-strong: var(--surface-strong);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-destructive: var(--destructive);
+
+  --color-ink-950: var(--ink-950);
+  --color-ink-900: var(--ink-900);
+  --color-ink-800: var(--ink-800);
+
+  --color-brand-50: var(--brand-50);
+  --color-brand-100: var(--brand-100);
+  --color-brand-200: var(--brand-200);
+  --color-brand-300: var(--brand-300);
+  --color-brand-400: var(--brand-400);
+  --color-brand-500: var(--brand-500);
+  --color-brand-600: var(--brand-600);
+  --color-brand-700: var(--brand-700);
+  --color-brand-800: var(--brand-800);
+  --color-brand-900: var(--brand-900);
+  --color-brand-950: var(--brand-950);
+  --color-brand-accent: var(--brand-accent);
+
+  /* Body — Raleway, with digits mapped to Involve (uniform width, no jump) */
+  --font-sans: "InvolveNum", var(--font-raleway), ui-sans-serif, system-ui,
+    -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  /* Headings & nav — Involve (already uniform digits), Raleway Cyrillic fallback */
+  --font-display: var(--font-involve), "InvolveNum", var(--font-raleway),
+    ui-sans-serif, system-ui, sans-serif;
+  --font-logo: var(--font-belanosima), var(--font-involve), sans-serif;
+
+  --radius-sm: calc(var(--radius) - 0.5rem);
+  --radius-md: calc(var(--radius) - 0.25rem);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 0.5rem);
+  --radius-2xl: calc(var(--radius) + 1rem);
+
+  --shadow-soft: var(--shadow-md);
+  --shadow-elevated: var(--shadow-lg);
+  --shadow-brand: var(--shadow-brand);
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection {
+    background: var(--brand-200);
+    color: var(--brand-900);
+  }
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+}
+
+@layer utilities {
+  .container-page {
+    width: 100%;
+    margin-inline: auto;
+    max-width: 80rem;
+    padding-inline: 1.25rem;
+  }
+  @media (min-width: 1024px) {
+    .container-page { padding-inline: 2rem; }
+  }
+  .text-gradient-brand {
+    background: linear-gradient(120deg, var(--brand-500), var(--brand-700));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .bg-grid {
+    background-image: radial-gradient(
+      circle at 1px 1px,
+      color-mix(in oklab, var(--foreground) 8%, transparent) 1px,
+      transparent 0
+    );
+    background-size: 28px 28px;
+  }
+  .mask-fade-b {
+    -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent);
+    mask-image: linear-gradient(to bottom, black 70%, transparent);
+  }
+}
