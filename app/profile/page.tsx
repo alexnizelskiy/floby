@@ -1,12 +1,36 @@
 import Link from "next/link";
-import { Phone, ListChecks, CalendarClock, Wallet } from "lucide-react";
+import { Phone, ListChecks, CalendarClock, Wallet, LayoutDashboard, ArrowRight } from "lucide-react";
 import { MyCleanings } from "@/components/profile/my-cleanings";
+import { ExecutorOrders } from "@/components/profile/executor-orders";
 import { demoUser } from "@/content/profile";
 import { formatPrice } from "@/lib/utils";
+import { getCurrentUser, isStaff } from "@/lib/auth";
 
-export default function ProfileHomePage() {
+export default async function ProfileHomePage() {
+  const user = await getCurrentUser();
+
   return (
     <div className="flex flex-col gap-6">
+      {isStaff(user) && (
+        <Link
+          href="/admin"
+          className="flex items-center justify-between rounded-2xl border border-brand-300 bg-brand-50 p-5 transition-colors hover:bg-brand-100"
+        >
+          <span className="flex items-center gap-3">
+            <span className="grid size-10 place-items-center rounded-full bg-primary text-primary-foreground">
+              <LayoutDashboard className="size-5" />
+            </span>
+            <span>
+              <span className="block font-semibold">Панель управления</span>
+              <span className="block text-sm text-muted-foreground">Заявки, исполнители, сотрудники</span>
+            </span>
+          </span>
+          <ArrowRight className="size-5 text-primary" />
+        </Link>
+      )}
+
+      {user?.role === "executor" && <ExecutorOrders />}
+
       <MyCleanings />
 
       <div className="grid gap-6 md:grid-cols-2">

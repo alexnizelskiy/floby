@@ -6,7 +6,7 @@
 
 export type PaymentMethod = "card" | "cash";
 export type SubscriptionPlan = "none" | "monthly" | "weekly" | "biweekly";
-export type BookingStatus = "searching" | "assigned" | "done";
+export type BookingStatus = "searching" | "assigned" | "in_progress" | "done" | "cancelled";
 
 export interface BookingOption {
   id: string;

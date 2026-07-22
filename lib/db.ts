@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS users (
   phone TEXT UNIQUE NOT NULL,
   name TEXT,
   email TEXT,
+  role TEXT NOT NULL DEFAULT 'client',
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE TABLE IF NOT EXISTS sessions (
@@ -42,8 +43,12 @@ CREATE TABLE IF NOT EXISTS bookings (
   total INT NOT NULL DEFAULT 0,
   paid BOOLEAN NOT NULL DEFAULT false,
   payment_id TEXT,
+  assignee_id TEXT REFERENCES users(id) ON DELETE SET NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+-- idempotent migrations for existing databases
+ALTER TABLE users ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'client';
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS assignee_id TEXT REFERENCES users(id) ON DELETE SET NULL;
 `;
 
 // Prepared statements can't run multiple commands at once — split & run each.
