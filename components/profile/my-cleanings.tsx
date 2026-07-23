@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { MapPin, User, Plus, HelpCircle, Check, Repeat } from "lucide-react";
+import { MapPin, User, Plus, HelpCircle, Check, Repeat, Star } from "lucide-react";
 import { QuickOrder } from "@/components/profile/quick-order";
+import { RateOrder } from "@/components/profile/rate-order";
 import { getIcon } from "@/lib/icons";
 import { formatPrice, cn } from "@/lib/utils";
 import {
@@ -46,6 +47,10 @@ export function MyCleanings() {
     return <QuickOrder />;
   }
 
+  const upcoming = bookings.filter((b) => b.status !== "done" && b.status !== "cancelled");
+  const done = bookings.filter((b) => b.status === "done");
+  const list = tab === "done" ? done : upcoming;
+
   return (
     <div className="rounded-2xl border border-border bg-card">
       <div className="flex gap-6 border-b border-border px-6 pt-5">
@@ -71,14 +76,21 @@ export function MyCleanings() {
         ))}
       </div>
 
-      {tab === "done" ? (
+      {list.length === 0 ? (
         <p className="p-10 text-center text-muted-foreground">
-          Здесь появятся выполненные уборки.
+          {tab === "done"
+            ? "Здесь появятся выполненные уборки."
+            : "Нет запланированных уборок."}
         </p>
       ) : (
         <div className="flex flex-col divide-y divide-border">
-          {bookings.map((b) => (
-            <BookingCard key={b.id} booking={b} onCancel={() => cancel(b.id)} />
+          {list.map((b) => (
+            <BookingCard
+              key={b.id}
+              booking={b}
+              onCancel={() => cancel(b.id)}
+              onReviewed={load}
+            />
           ))}
         </div>
       )}
@@ -86,9 +98,18 @@ export function MyCleanings() {
   );
 }
 
-function BookingCard({ booking: b, onCancel }: { booking: Booking; onCancel: () => void }) {
+function BookingCard({
+  booking: b,
+  onCancel,
+  onReviewed,
+}: {
+  booking: Booking;
+  onCancel: () => void;
+  onReviewed: () => void;
+}) {
   const duration = estimateDurationHours(b.rooms, b.baths);
   const selected = b.optionIds.map((id) => optionMap.get(id)).filter(Boolean).slice(0, 3);
+  const isDone = b.status === "done";
 
   return (
     <div className="p-6">
@@ -102,6 +123,11 @@ function BookingCard({ booking: b, onCancel }: { booking: Booking; onCancel: () 
                 {subscriptions.find((s) => s.id === b.subscription)?.title}
               </span>
             )}
+            {isDone && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-brand-100 px-2.5 py-0.5 text-xs font-semibold text-brand-700">
+                <Check className="size-3.5" /> Выполнена
+              </span>
+            )}
           </div>
           <p className="mt-1 text-lg font-semibold text-muted-foreground">
             {b.time} — {endTime(b.time, duration)}
@@ -110,28 +136,42 @@ function BookingCard({ booking: b, onCancel }: { booking: Booking; onCancel: () 
             <MapPin className="size-4" />
             {[b.city, b.street, b.apartment && `кв. ${b.apartment}`].filter(Boolean).join(", ")}
           </p>
-          <div className="mt-4 flex gap-3">
-            <button
-              type="button"
-              className="rounded-xl bg-ink-950 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-ink-900"
-            >
-              Перенести
-            </button>
-            <button
-              type="button"
-              onClick={onCancel}
-              className="rounded-xl border border-border px-6 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-surface"
-            >
-              Отменить
-            </button>
-          </div>
+          {isDone ? (
+            <div className="mt-4">
+              {b.reviewed ? (
+                <span className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
+                  <Star className="size-4 fill-warning text-warning" /> Вы оценили уборку
+                </span>
+              ) : (
+                <RateOrder bookingId={b.id} onDone={onReviewed} />
+              )}
+            </div>
+          ) : (
+            <div className="mt-4 flex gap-3">
+              <button
+                type="button"
+                className="rounded-xl bg-ink-950 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-ink-900"
+              >
+                Перенести
+              </button>
+              <button
+                type="button"
+                onClick={onCancel}
+                className="rounded-xl border border-border px-6 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-surface"
+              >
+                Отменить
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="hidden shrink-0 flex-col items-center gap-2 sm:flex">
           <span className="grid size-20 place-items-center rounded-full border-2 border-dashed border-border text-muted-foreground">
             <User className="size-8" />
           </span>
-          <span className="text-sm text-muted-foreground">Ищем клинера</span>
+          <span className="text-sm text-muted-foreground">
+            {isDone ? "Уборка завершена" : "Ищем клинера"}
+          </span>
         </div>
       </div>
 

@@ -42,6 +42,7 @@ export interface Booking extends BookingDraft {
   price: PriceBreakdown;
   status: BookingStatus;
   paid?: boolean;
+  reviewed?: boolean;
   createdAt: string;
 }
 

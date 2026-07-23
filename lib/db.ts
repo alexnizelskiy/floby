@@ -54,6 +54,16 @@ CREATE TABLE IF NOT EXISTS bonus_ledger (
   booking_id TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+CREATE TABLE IF NOT EXISTS reviews (
+  id TEXT PRIMARY KEY,
+  booking_id TEXT UNIQUE NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  executor_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+  rating INT NOT NULL,
+  text TEXT,
+  service TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
 CREATE TABLE IF NOT EXISTS promo_codes (
   id TEXT PRIMARY KEY,
   code TEXT UNIQUE NOT NULL,

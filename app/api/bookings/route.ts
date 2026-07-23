@@ -12,6 +12,7 @@ interface BookingRow {
   total: number;
   paid: boolean;
   created_at: string;
+  reviewed: boolean;
 }
 
 export async function GET() {
@@ -19,7 +20,9 @@ export async function GET() {
   if (!user) return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
 
   const rows = await query<BookingRow>(
-    "SELECT id, data, status, total, paid, created_at FROM bookings WHERE user_id = $1 ORDER BY created_at DESC",
+    `SELECT b.id, b.data, b.status, b.total, b.paid, b.created_at, (rv.id IS NOT NULL) AS reviewed
+       FROM bookings b LEFT JOIN reviews rv ON rv.booking_id = b.id
+      WHERE b.user_id = $1 ORDER BY b.created_at DESC`,
     [user.id]
   );
   const bookings = rows.map((r) => ({
@@ -28,6 +31,7 @@ export async function GET() {
     status: r.status,
     total: r.total,
     paid: r.paid,
+    reviewed: r.reviewed,
     createdAt: r.created_at,
   }));
   return NextResponse.json({ ok: true, bookings });
