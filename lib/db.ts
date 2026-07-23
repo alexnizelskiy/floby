@@ -77,6 +77,7 @@ ALTER TABLE bookings ADD COLUMN IF NOT EXISTS assignee_id TEXT REFERENCES users(
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS bonus_used INT NOT NULL DEFAULT 0;
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS promo_code TEXT;
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS promo_discount INT NOT NULL DEFAULT 0;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS recurring_spawned BOOLEAN NOT NULL DEFAULT false;
 `;
 
 // Prepared statements can't run multiple commands at once — split & run each.

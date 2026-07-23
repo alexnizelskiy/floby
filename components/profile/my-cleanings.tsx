@@ -1,12 +1,13 @@
 "use client";
 
 import * as React from "react";
-import { MapPin, User, Plus, HelpCircle, Check } from "lucide-react";
+import { MapPin, User, Plus, HelpCircle, Check, Repeat } from "lucide-react";
 import { QuickOrder } from "@/components/profile/quick-order";
 import { getIcon } from "@/lib/icons";
 import { formatPrice, cn } from "@/lib/utils";
 import {
   optionMap,
+  subscriptions,
   estimateDurationHours,
   endTime,
   formatDateCard,
@@ -93,7 +94,15 @@ function BookingCard({ booking: b, onCancel }: { booking: Booking; onCancel: () 
     <div className="p-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-xl font-bold">{formatDateCard(b.date)}</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-xl font-bold">{formatDateCard(b.date)}</p>
+            {b.subscription && b.subscription !== "none" && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-semibold text-brand-700">
+                <Repeat className="size-3.5" />
+                {subscriptions.find((s) => s.id === b.subscription)?.title}
+              </span>
+            )}
+          </div>
           <p className="mt-1 text-lg font-semibold text-muted-foreground">
             {b.time} — {endTime(b.time, duration)}
           </p>
