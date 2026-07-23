@@ -54,6 +54,18 @@ CREATE TABLE IF NOT EXISTS bonus_ledger (
   booking_id TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+CREATE TABLE IF NOT EXISTS promo_codes (
+  id TEXT PRIMARY KEY,
+  code TEXT UNIQUE NOT NULL,
+  discount_type TEXT NOT NULL,
+  value INT NOT NULL,
+  active BOOLEAN NOT NULL DEFAULT true,
+  max_uses INT NOT NULL DEFAULT 0,
+  used_count INT NOT NULL DEFAULT 0,
+  min_order INT NOT NULL DEFAULT 0,
+  expires_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
 -- idempotent migrations for existing databases
 ALTER TABLE users ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'client';
 ALTER TABLE users ADD COLUMN IF NOT EXISTS bonus_balance INT NOT NULL DEFAULT 0;
@@ -63,6 +75,8 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS referrer_credited BOOLEAN NOT NULL DE
 CREATE UNIQUE INDEX IF NOT EXISTS users_ref_code_idx ON users(ref_code);
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS assignee_id TEXT REFERENCES users(id) ON DELETE SET NULL;
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS bonus_used INT NOT NULL DEFAULT 0;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS promo_code TEXT;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS promo_discount INT NOT NULL DEFAULT 0;
 `;
 
 // Prepared statements can't run multiple commands at once — split & run each.

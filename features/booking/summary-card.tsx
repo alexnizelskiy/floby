@@ -19,6 +19,8 @@ interface SummaryCardProps {
   paymentLabel?: string;
   price: PriceBreakdown;
   bonus?: number;
+  promoDiscount?: number;
+  promoCode?: string;
   className?: string;
 }
 
@@ -43,9 +45,11 @@ export function SummaryCard({
   paymentLabel,
   price,
   bonus = 0,
+  promoDiscount = 0,
+  promoCode,
   className,
 }: SummaryCardProps) {
-  const payable = Math.max(0, price.total - bonus);
+  const payable = Math.max(0, price.total - bonus - promoDiscount);
   const regularity = subscriptions.find((s) => s.id === subscription)?.title ?? "Один раз";
   const regularityText = subscription === "none" ? "Один раз" : regularity;
 
@@ -73,6 +77,12 @@ export function SummaryCard({
           <div className="flex items-center justify-between text-sm text-muted-foreground">
             <span>Повышенный тариф {price.surgePercent}%</span>
             <span>+{formatPrice(price.surgeAmount)}</span>
+          </div>
+        )}
+        {promoDiscount > 0 && (
+          <div className="flex items-center justify-between text-sm text-brand-600">
+            <span>Промокод{promoCode ? ` ${promoCode}` : ""}</span>
+            <span>−{formatPrice(promoDiscount)}</span>
           </div>
         )}
         {bonus > 0 && (

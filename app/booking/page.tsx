@@ -100,6 +100,11 @@ export default function BookingPage() {
   // Bonuses
   const [bonusBalance, setBonusBalance] = React.useState(0);
   const [useBonus, setUseBonus] = React.useState(false);
+  // Promo
+  const [promoOpen, setPromoOpen] = React.useState(false);
+  const [promoInput, setPromoInput] = React.useState("");
+  const [promo, setPromo] = React.useState<{ code: string; discountType: "percent" | "fixed"; value: number } | null>(null);
+  const [promoError, setPromoError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     const d = getDraft();
@@ -120,8 +125,35 @@ export default function BookingPage() {
   const price = computePrice(rooms, baths, optionIds, surge);
   const duration = estimateDurationHours(rooms, baths);
   const paymentLabel = payment === "card" ? "Картой" : "Наличные";
-  const maxBonus = Math.floor(price.total * 0.15);
+  const promoDiscount = promo
+    ? promo.discountType === "percent"
+      ? Math.floor((price.total * promo.value) / 100)
+      : Math.min(promo.value, price.total)
+    : 0;
+  const afterPromo = price.total - promoDiscount;
+  const maxBonus = Math.floor(afterPromo * 0.15);
   const bonusApplied = useBonus ? Math.min(bonusBalance, maxBonus) : 0;
+
+  async function applyPromo() {
+    setPromoError(null);
+    const res = await fetch("/api/promo/validate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code: promoInput, total: price.total }),
+    }).then((r) => r.json());
+    if (res.ok) {
+      setPromo({ code: res.code, discountType: res.discountType, value: res.value });
+    } else {
+      setPromo(null);
+      const map: Record<string, string> = {
+        not_found: "Промокод не найден или неактивен",
+        expired: "Срок действия промокода истёк",
+        used_up: "Лимит использований исчерпан",
+        min_order: `Промокод действует от ${res.value} ₽`,
+      };
+      setPromoError(map[res.error] ?? "Не удалось применить промокод");
+    }
+  }
 
   function toggleOption(id: string) {
     setOptionIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
@@ -149,7 +181,7 @@ export default function BookingPage() {
       const res = await fetch("/api/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ data, total: price.total, bonusUsed: bonusApplied }),
+        body: JSON.stringify({ data, total: price.total, bonusUsed: bonusApplied, promoCode: promo?.code }),
       });
       if (res.status === 401) {
         router.push("/"); // session lost — re-auth
@@ -308,9 +340,48 @@ export default function BookingPage() {
                     </p>
                   )}
 
-                  <button type="button" className="w-fit text-sm font-medium text-primary hover:underline">
-                    Ввести промокод
-                  </button>
+                  <div>
+                    {!promoOpen && !promo && (
+                      <button
+                        type="button"
+                        onClick={() => setPromoOpen(true)}
+                        className="w-fit text-sm font-medium text-primary hover:underline"
+                      >
+                        Ввести промокод
+                      </button>
+                    )}
+                    {(promoOpen || promo) && (
+                      <div className="flex flex-col gap-2">
+                        {promo ? (
+                          <div className="flex items-center gap-3 rounded-xl border border-brand-200 bg-brand-50 px-4 py-3 text-sm">
+                            <span className="font-semibold text-brand-700">
+                              Промокод {promo.code} применён
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => { setPromo(null); setPromoInput(""); }}
+                              className="ml-auto text-muted-foreground hover:text-foreground"
+                            >
+                              Убрать
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex gap-2">
+                            <input
+                              value={promoInput}
+                              onChange={(e) => { setPromoInput(e.target.value.toUpperCase()); setPromoError(null); }}
+                              placeholder="ПРОМОКОД"
+                              className={cn(inputCls, "max-w-xs uppercase")}
+                            />
+                            <Button type="button" variant="outline" onClick={applyPromo}>
+                              Применить
+                            </Button>
+                          </div>
+                        )}
+                        {promoError && <p className="text-sm text-destructive">{promoError}</p>}
+                      </div>
+                    )}
+                  </div>
 
                   {bonusBalance > 0 && (
                     <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-brand-200 bg-brand-50/60 p-4">
@@ -488,6 +559,8 @@ export default function BookingPage() {
               paymentLabel={step >= 2 ? paymentLabel : undefined}
               price={price}
               bonus={bonusApplied}
+              promoDiscount={promoDiscount}
+              promoCode={promo?.code}
             />
           </aside>
         </div>

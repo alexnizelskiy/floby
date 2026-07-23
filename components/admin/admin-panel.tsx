@@ -41,11 +41,19 @@ const ROLE_LABEL: Record<string, string> = {
 const selectCls =
   "h-10 rounded-lg border border-input bg-background px-3 text-sm focus-visible:border-brand-400 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring";
 
+interface Promo {
+  id: string; code: string; discount_type: "percent" | "fixed"; value: number;
+  active: boolean; max_uses: number; used_count: number; min_order: number; expires_at: string | null;
+}
+
 export function AdminPanel({ role }: { role: Role }) {
-  const [tab, setTab] = React.useState<"bookings" | "users">("bookings");
+  const [tab, setTab] = React.useState<"bookings" | "users" | "promos">("bookings");
   const [bookings, setBookings] = React.useState<AdminBooking[]>([]);
   const [users, setUsers] = React.useState<AdminUser[]>([]);
+  const [promos, setPromos] = React.useState<Promo[]>([]);
   const [q, setQ] = React.useState("");
+  const [newPromo, setNewPromo] = React.useState({ code: "", discountType: "percent", value: "", maxUses: "", minOrder: "" });
+  const [promoErr, setPromoErr] = React.useState("");
 
   const loadBookings = React.useCallback(async () => {
     const r = await fetch("/api/admin/bookings").then((x) => x.json());
@@ -56,10 +64,47 @@ export function AdminPanel({ role }: { role: Role }) {
     if (r.ok) setUsers(r.users);
   }, []);
 
+  const loadPromos = React.useCallback(async () => {
+    const r = await fetch("/api/admin/promos").then((x) => x.json());
+    if (r.ok) setPromos(r.promos);
+  }, []);
+
   React.useEffect(() => {
     loadBookings();
     loadUsers();
-  }, [loadBookings, loadUsers]);
+    loadPromos();
+  }, [loadBookings, loadUsers, loadPromos]);
+
+  async function createPromo() {
+    setPromoErr("");
+    const res = await fetch("/api/admin/promos", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        code: newPromo.code,
+        discountType: newPromo.discountType,
+        value: Number(newPromo.value),
+        maxUses: Number(newPromo.maxUses || 0),
+        minOrder: Number(newPromo.minOrder || 0),
+      }),
+    }).then((x) => x.json());
+    if (res.ok) {
+      setNewPromo({ code: "", discountType: "percent", value: "", maxUses: "", minOrder: "" });
+      loadPromos();
+    } else {
+      setPromoErr(res.error === "duplicate" ? "Такой код уже есть" : "Проверьте поля (код A-Z0-9, значение > 0)");
+    }
+  }
+  async function togglePromo(id: string, active: boolean) {
+    await fetch(`/api/admin/promos/${id}`, {
+      method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ active }),
+    });
+    loadPromos();
+  }
+  async function deletePromo(id: string) {
+    await fetch(`/api/admin/promos/${id}`, { method: "DELETE" });
+    loadPromos();
+  }
 
   const executors = users.filter((u) => u.role === "executor");
 
@@ -101,6 +146,7 @@ export function AdminPanel({ role }: { role: Role }) {
             [
               ["bookings", `Заявки (${bookings.length})`],
               ["users", `Пользователи (${users.length})`],
+              ["promos", `Промокоды (${promos.length})`],
             ] as const
           ).map(([id, label]) => (
             <button
@@ -254,6 +300,74 @@ export function AdminPanel({ role }: { role: Role }) {
                   ))}
                   {users.length === 0 && (
                     <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">Никого не найдено</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* ── Promo codes ── */}
+        {tab === "promos" && (
+          <div className="mt-6 flex flex-col gap-6">
+            <div className="rounded-2xl border border-border bg-card p-5 md:p-6">
+              <h3 className="font-bold">Новый промокод</h3>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
+                <input placeholder="КОД" value={newPromo.code}
+                  onChange={(e) => setNewPromo({ ...newPromo, code: e.target.value.toUpperCase() })}
+                  className={cn(selectCls, "uppercase")} />
+                <select value={newPromo.discountType}
+                  onChange={(e) => setNewPromo({ ...newPromo, discountType: e.target.value })} className={selectCls}>
+                  <option value="percent">Процент %</option>
+                  <option value="fixed">Сумма ₽</option>
+                </select>
+                <input type="number" placeholder={newPromo.discountType === "percent" ? "% скидки" : "₽ скидки"}
+                  value={newPromo.value} onChange={(e) => setNewPromo({ ...newPromo, value: e.target.value })} className={selectCls} />
+                <input type="number" placeholder="Лимит (0=∞)" value={newPromo.maxUses}
+                  onChange={(e) => setNewPromo({ ...newPromo, maxUses: e.target.value })} className={selectCls} />
+                <input type="number" placeholder="От суммы ₽" value={newPromo.minOrder}
+                  onChange={(e) => setNewPromo({ ...newPromo, minOrder: e.target.value })} className={selectCls} />
+                <button onClick={createPromo}
+                  className="h-10 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary-hover">
+                  Создать
+                </button>
+              </div>
+              {promoErr && <p className="mt-2 text-sm text-destructive">{promoErr}</p>}
+            </div>
+
+            <div className="overflow-x-auto rounded-2xl border border-border bg-card">
+              <table className="w-full min-w-[640px] text-sm">
+                <thead>
+                  <tr className="border-b border-border text-left text-muted-foreground">
+                    <th className="px-4 py-3 font-medium">Код</th>
+                    <th className="px-4 py-3 font-medium">Скидка</th>
+                    <th className="px-4 py-3 font-medium">Использован</th>
+                    <th className="px-4 py-3 font-medium">От суммы</th>
+                    <th className="px-4 py-3 font-medium">Активен</th>
+                    <th className="px-4 py-3 font-medium"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {promos.map((p) => (
+                    <tr key={p.id} className="border-b border-border last:border-0">
+                      <td className="px-4 py-3 font-bold">{p.code}</td>
+                      <td className="px-4 py-3">{p.discount_type === "percent" ? `${p.value}%` : formatPrice(p.value)}</td>
+                      <td className="px-4 py-3">{p.used_count}{p.max_uses > 0 ? ` / ${p.max_uses}` : ""}</td>
+                      <td className="px-4 py-3">{p.min_order > 0 ? formatPrice(p.min_order) : "—"}</td>
+                      <td className="px-4 py-3">
+                        <button onClick={() => togglePromo(p.id, !p.active)}
+                          className={cn("rounded-full px-2.5 py-1 text-xs font-semibold",
+                            p.active ? "bg-brand-100 text-brand-700" : "bg-muted text-muted-foreground")}>
+                          {p.active ? "Вкл" : "Выкл"}
+                        </button>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <button onClick={() => deletePromo(p.id)} className="text-sm text-destructive hover:underline">Удалить</button>
+                      </td>
+                    </tr>
+                  ))}
+                  {promos.length === 0 && (
+                    <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">Промокодов пока нет</td></tr>
                   )}
                 </tbody>
               </table>
