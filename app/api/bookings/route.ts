@@ -3,6 +3,7 @@ import { query } from "@/lib/db";
 import { getCurrentUser, newId } from "@/lib/auth";
 import { getBalance, maxBonusForOrder, creditBonus } from "@/lib/bonus";
 import { validatePromo, consumePromo } from "@/lib/promo";
+import { notifyOwnerNewBooking } from "@/lib/notify";
 
 interface BookingRow {
   id: string;
@@ -73,6 +74,8 @@ export async function POST(request: Request) {
   );
   if (bonusUsed > 0) await creditBonus(user.id, -bonusUsed, "Оплата бонусами", id);
   if (promoCode) await consumePromo(promoCode);
+
+  await notifyOwnerNewBooking(body.data, user.phone, payable).catch(() => {});
 
   return NextResponse.json({ ok: true, id });
 }

@@ -3,6 +3,7 @@ import { query } from "@/lib/db";
 import { getCurrentUser, isStaff } from "@/lib/auth";
 import { handleOrderCompleted } from "@/lib/bonus";
 import { createNextIfRecurring } from "@/lib/subscription";
+import { notifyBookingStatus } from "@/lib/notify";
 
 const STATUSES = ["searching", "assigned", "in_progress", "done", "cancelled"];
 
@@ -28,9 +29,11 @@ export async function PATCH(
       nextStatus,
       id,
     ]);
+    if (assignee) await notifyBookingStatus(id, "assigned").catch(() => {});
   }
   if (body.status && STATUSES.includes(body.status)) {
     await query("UPDATE bookings SET status = $1 WHERE id = $2", [body.status, id]);
+    await notifyBookingStatus(id, body.status).catch(() => {});
     if (body.status === "done") {
       await handleOrderCompleted(id);
       await createNextIfRecurring(id);

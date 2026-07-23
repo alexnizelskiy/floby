@@ -3,6 +3,7 @@ import { query } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { handleOrderCompleted } from "@/lib/bonus";
 import { createNextIfRecurring } from "@/lib/subscription";
+import { notifyBookingStatus } from "@/lib/notify";
 
 // executors may only move their own order forward
 const ALLOWED = ["in_progress", "done"];
@@ -24,6 +25,7 @@ export async function PATCH(
     "UPDATE bookings SET status = $1 WHERE id = $2 AND assignee_id = $3",
     [body.status, id, user.id]
   );
+  await notifyBookingStatus(id, body.status).catch(() => {});
   if (body.status === "done") {
     await handleOrderCompleted(id);
     await createNextIfRecurring(id);
