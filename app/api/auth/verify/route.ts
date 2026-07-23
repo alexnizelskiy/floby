@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { query, queryOne } from "@/lib/db";
 import { normalizePhone, hashCode, createSession, upsertUserByPhone } from "@/lib/auth";
+import { ensureRefCode, applyReferral } from "@/lib/bonus";
 
 const MAX_ATTEMPTS = 5;
 
@@ -34,8 +36,21 @@ export async function POST(request: Request) {
 
   // Success — consume code, create/find user, start session
   await query("DELETE FROM otp_codes WHERE phone = $1", [phone]);
-  const user = await upsertUserByPhone(phone);
-  await createSession(user.id);
 
+  const existed = await queryOne("SELECT id FROM users WHERE phone = $1", [phone]);
+  const user = await upsertUserByPhone(phone);
+  await ensureRefCode(user.id);
+
+  if (!existed) {
+    // brand-new user — apply referral captured on landing (?ref=CODE)
+    const store = await cookies();
+    const ref = store.get("floby_ref")?.value;
+    if (ref) {
+      await applyReferral(user.id, ref);
+      store.delete("floby_ref");
+    }
+  }
+
+  await createSession(user.id);
   return NextResponse.json({ ok: true, user: { id: user.id, phone: user.phone, name: user.name } });
 }

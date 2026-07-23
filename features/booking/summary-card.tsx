@@ -18,6 +18,7 @@ interface SummaryCardProps {
   subscription: SubscriptionPlan;
   paymentLabel?: string;
   price: PriceBreakdown;
+  bonus?: number;
   className?: string;
 }
 
@@ -41,8 +42,10 @@ export function SummaryCard({
   subscription,
   paymentLabel,
   price,
+  bonus = 0,
   className,
 }: SummaryCardProps) {
+  const payable = Math.max(0, price.total - bonus);
   const regularity = subscriptions.find((s) => s.id === subscription)?.title ?? "Один раз";
   const regularityText = subscription === "none" ? "Один раз" : regularity;
 
@@ -72,6 +75,12 @@ export function SummaryCard({
             <span>+{formatPrice(price.surgeAmount)}</span>
           </div>
         )}
+        {bonus > 0 && (
+          <div className="flex items-center justify-between text-sm text-brand-600">
+            <span>Оплата бонусами</span>
+            <span>−{formatPrice(bonus)}</span>
+          </div>
+        )}
       </div>
 
       <div className="my-4 h-px bg-border" />
@@ -80,7 +89,7 @@ export function SummaryCard({
         <span className="font-semibold">К оплате</span>
         <span className="flex items-center gap-1 text-lg font-bold">
           {price.surgePercent > 0 && <Zap className="size-4 fill-sky-400 text-sky-400" />}
-          {formatPrice(price.total)}
+          {formatPrice(payable)}
         </span>
       </div>
     </div>

@@ -2,12 +2,13 @@ import Link from "next/link";
 import { Phone, ListChecks, CalendarClock, Wallet, LayoutDashboard, ArrowRight } from "lucide-react";
 import { MyCleanings } from "@/components/profile/my-cleanings";
 import { ExecutorOrders } from "@/components/profile/executor-orders";
-import { demoUser } from "@/content/profile";
 import { formatPrice } from "@/lib/utils";
 import { getCurrentUser, isStaff } from "@/lib/auth";
+import { getBalance } from "@/lib/bonus";
 
 export default async function ProfileHomePage() {
   const user = await getCurrentUser();
+  const balance = user ? await getBalance(user.id) : 0;
 
   return (
     <div className="flex flex-col gap-6">
@@ -51,12 +52,12 @@ export default async function ProfileHomePage() {
               </li>
             ))}
           </ul>
-          <a
-            href={demoUser.referralLink}
+          <Link
+            href="/profile/bonuses"
             className="mt-5 inline-flex w-full items-center justify-center rounded-full bg-ink-900 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-ink-800"
           >
-            Получить ссылку по СМС
-          </a>
+            Пригласить друга — +500 ₽
+          </Link>
         </div>
 
         {/* Balance */}
@@ -68,7 +69,7 @@ export default async function ProfileHomePage() {
             <h3 className="text-lg font-bold">Ваш баланс на уборки</h3>
           </div>
           <p className="mt-4 text-4xl font-extrabold text-primary">
-            {formatPrice(demoUser.bonusBalance)}
+            {formatPrice(balance)}
           </p>
           <p className="mt-2 text-sm text-muted-foreground">
             Вы можете оплатить бонусами до 15% стоимости уборки.

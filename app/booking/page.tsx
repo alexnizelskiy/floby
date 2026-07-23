@@ -97,6 +97,9 @@ export default function BookingPage() {
   const [comment, setComment] = React.useState("");
   // Step 4
   const [subscription, setSubscription] = React.useState<SubscriptionPlan>("none");
+  // Bonuses
+  const [bonusBalance, setBonusBalance] = React.useState(0);
+  const [useBonus, setUseBonus] = React.useState(false);
 
   React.useEffect(() => {
     const d = getDraft();
@@ -107,12 +110,18 @@ export default function BookingPage() {
     }
     const auth = getAuthPhone();
     if (auth) setPhone((p) => p || auth);
+    fetch("/api/bonus/me")
+      .then((r) => r.json())
+      .then((d) => d.ok && setBonusBalance(d.balance))
+      .catch(() => {});
   }, []);
 
   const surge = surgeForSlot(date, time);
   const price = computePrice(rooms, baths, optionIds, surge);
   const duration = estimateDurationHours(rooms, baths);
   const paymentLabel = payment === "card" ? "Картой" : "Наличные";
+  const maxBonus = Math.floor(price.total * 0.15);
+  const bonusApplied = useBonus ? Math.min(bonusBalance, maxBonus) : 0;
 
   function toggleOption(id: string) {
     setOptionIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
@@ -134,12 +143,13 @@ export default function BookingPage() {
     const data = {
       rooms, baths, phone, city, street, apartment, date, time, payment,
       optionIds, email, name, entrance, floor, intercom, comment, subscription, price,
+      bonusUsed: bonusApplied,
     };
     try {
       const res = await fetch("/api/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ data, total: price.total }),
+        body: JSON.stringify({ data, total: price.total, bonusUsed: bonusApplied }),
       });
       if (res.status === 401) {
         router.push("/"); // session lost — re-auth
@@ -301,6 +311,24 @@ export default function BookingPage() {
                   <button type="button" className="w-fit text-sm font-medium text-primary hover:underline">
                     Ввести промокод
                   </button>
+
+                  {bonusBalance > 0 && (
+                    <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-brand-200 bg-brand-50/60 p-4">
+                      <input
+                        type="checkbox"
+                        checked={useBonus}
+                        onChange={(e) => setUseBonus(e.target.checked)}
+                        className="mt-0.5 size-4 shrink-0 accent-[var(--primary)]"
+                      />
+                      <span className="text-sm">
+                        <span className="font-semibold">Списать бонусы</span> — на счету{" "}
+                        {formatPrice(bonusBalance)}. Оплатить можно до 15% заказа:{" "}
+                        <span className="font-semibold text-brand-600">
+                          −{formatPrice(Math.min(bonusBalance, maxBonus))}
+                        </span>
+                      </span>
+                    </label>
+                  )}
                 </section>
 
                 <div className="h-px bg-border" />
@@ -459,6 +487,7 @@ export default function BookingPage() {
               subscription={subscription}
               paymentLabel={step >= 2 ? paymentLabel : undefined}
               price={price}
+              bonus={bonusApplied}
             />
           </aside>
         </div>

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import { getCurrentUser, isStaff } from "@/lib/auth";
+import { handleOrderCompleted } from "@/lib/bonus";
 
 const STATUSES = ["searching", "assigned", "in_progress", "done", "cancelled"];
 
@@ -29,6 +30,7 @@ export async function PATCH(
   }
   if (body.status && STATUSES.includes(body.status)) {
     await query("UPDATE bookings SET status = $1 WHERE id = $2", [body.status, id]);
+    if (body.status === "done") await handleOrderCompleted(id);
   }
   return NextResponse.json({ ok: true });
 }

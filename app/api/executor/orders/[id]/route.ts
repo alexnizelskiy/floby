@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
+import { handleOrderCompleted } from "@/lib/bonus";
 
 // executors may only move their own order forward
 const ALLOWED = ["in_progress", "done"];
@@ -18,9 +19,10 @@ export async function PATCH(
     return NextResponse.json({ ok: false, error: "bad_status" }, { status: 422 });
   }
 
-  const res = await query(
+  await query(
     "UPDATE bookings SET status = $1 WHERE id = $2 AND assignee_id = $3",
     [body.status, id, user.id]
   );
-  return NextResponse.json({ ok: true, updated: (res as unknown as { length?: number }).length ?? true });
+  if (body.status === "done") await handleOrderCompleted(id);
+  return NextResponse.json({ ok: true });
 }

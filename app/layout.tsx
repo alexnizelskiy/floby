@@ -6,6 +6,7 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { ThemeScript } from "@/components/theme/theme-toggle";
 import { JsonLd } from "@/components/seo/json-ld";
+import { RefCapture } from "@/components/referral/ref-capture";
 import { localBusinessJsonLd, websiteJsonLd } from "@/lib/jsonld";
 import { defaultMetadata } from "@/lib/seo";
 import { siteConfig } from "@/lib/site";
@@ -59,6 +60,7 @@ export default function RootLayout({
       </head>
       <body className="flex min-h-dvh flex-col antialiased">
         <JsonLd data={[localBusinessJsonLd(), websiteJsonLd()]} />
+        <RefCapture />
         <Header />
         <main className="flex-1">{children}</main>
         <Footer />
