@@ -1,10 +1,21 @@
 "use client";
 
 import * as React from "react";
-import { MapPin, Phone, Search, User, CreditCard, Banknote } from "lucide-react";
+import { MapPin, Phone, Search, User, CreditCard, Banknote, TrendingUp, Repeat, Wallet, Star } from "lucide-react";
 import { formatPrice, cn } from "@/lib/utils";
 import { formatDateCard, optionMap } from "@/lib/booking";
 import type { Role } from "@/lib/auth";
+
+interface Analytics {
+  revenue: { today: number; week: number; month: number; total: number };
+  orders: { total: number; done: number; active: number; cancelled: number };
+  avgCheck: number;
+  repeatRate: number;
+  clients: { total: number; withOrders: number };
+  statusFunnel: { status: string; count: number }[];
+  revenueByDay: { day: string; revenue: number }[];
+  topExecutors: { name: string; done: number; rating: number }[];
+}
 
 interface AdminBooking {
   id: string;
@@ -47,10 +58,11 @@ interface Promo {
 }
 
 export function AdminPanel({ role }: { role: Role }) {
-  const [tab, setTab] = React.useState<"bookings" | "users" | "promos">("bookings");
+  const [tab, setTab] = React.useState<"analytics" | "bookings" | "users" | "promos">("analytics");
   const [bookings, setBookings] = React.useState<AdminBooking[]>([]);
   const [users, setUsers] = React.useState<AdminUser[]>([]);
   const [promos, setPromos] = React.useState<Promo[]>([]);
+  const [analytics, setAnalytics] = React.useState<Analytics | null>(null);
   const [q, setQ] = React.useState("");
   const [newPromo, setNewPromo] = React.useState({ code: "", discountType: "percent", value: "", maxUses: "", minOrder: "" });
   const [promoErr, setPromoErr] = React.useState("");
@@ -68,12 +80,17 @@ export function AdminPanel({ role }: { role: Role }) {
     const r = await fetch("/api/admin/promos").then((x) => x.json());
     if (r.ok) setPromos(r.promos);
   }, []);
+  const loadAnalytics = React.useCallback(async () => {
+    const r = await fetch("/api/admin/analytics").then((x) => x.json()).catch(() => null);
+    if (r?.ok) setAnalytics(r.analytics);
+  }, []);
 
   React.useEffect(() => {
+    loadAnalytics();
     loadBookings();
     loadUsers();
     loadPromos();
-  }, [loadBookings, loadUsers, loadPromos]);
+  }, [loadAnalytics, loadBookings, loadUsers, loadPromos]);
 
   async function createPromo() {
     setPromoErr("");
@@ -144,6 +161,7 @@ export function AdminPanel({ role }: { role: Role }) {
         <div className="mt-6 flex gap-2">
           {(
             [
+              ["analytics", "Аналитика"],
               ["bookings", `Заявки (${bookings.length})`],
               ["users", `Пользователи (${users.length})`],
               ["promos", `Промокоды (${promos.length})`],
@@ -161,6 +179,81 @@ export function AdminPanel({ role }: { role: Role }) {
             </button>
           ))}
         </div>
+
+        {/* ── Analytics ── */}
+        {tab === "analytics" && (
+          <div className="mt-6">
+            {!analytics ? (
+              <div className="h-40 rounded-2xl border border-border bg-card" />
+            ) : (
+              <div className="flex flex-col gap-6">
+                {/* Ключевые метрики */}
+                <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+                  <StatCard icon={<Wallet className="size-4" />} label="Выручка за месяц" value={formatPrice(analytics.revenue.month)} hint={`сегодня ${formatPrice(analytics.revenue.today)}`} />
+                  <StatCard icon={<TrendingUp className="size-4" />} label="Средний чек" value={formatPrice(analytics.avgCheck)} hint={`${analytics.orders.done} выполнено`} />
+                  <StatCard icon={<Repeat className="size-4" />} label="Повторные клиенты" value={`${analytics.repeatRate}%`} hint={`${analytics.clients.withOrders} с заказами`} />
+                  <StatCard icon={<User className="size-4" />} label="Клиентов всего" value={String(analytics.clients.total)} hint={`${analytics.orders.total} заявок`} />
+                </div>
+
+                <div className="grid gap-6 lg:grid-cols-2">
+                  {/* Выручка по дням */}
+                  <div className="rounded-2xl border border-border bg-card p-5">
+                    <h3 className="text-base font-bold">Выручка, 14 дней</h3>
+                    <p className="mt-0.5 text-sm text-muted-foreground">Итого: {formatPrice(analytics.revenue.total)} за всё время</p>
+                    <RevenueBars data={analytics.revenueByDay} />
+                  </div>
+
+                  {/* Воронка статусов */}
+                  <div className="rounded-2xl border border-border bg-card p-5">
+                    <h3 className="text-base font-bold">Заказы по статусам</h3>
+                    <div className="mt-4 flex flex-col gap-2.5">
+                      {analytics.statusFunnel.length === 0 && (
+                        <p className="text-sm text-muted-foreground">Пока нет заказов.</p>
+                      )}
+                      {analytics.statusFunnel.map((s) => {
+                        const max = Math.max(...analytics.statusFunnel.map((x) => x.count), 1);
+                        return (
+                          <div key={s.status} className="flex items-center gap-3">
+                            <span className="w-36 shrink-0 text-sm text-muted-foreground">{STATUS_LABEL[s.status] ?? s.status}</span>
+                            <div className="h-6 flex-1 overflow-hidden rounded-lg bg-surface-strong">
+                              <div className="h-full rounded-lg bg-brand-400" style={{ width: `${(s.count / max) * 100}%` }} />
+                            </div>
+                            <span className="w-8 shrink-0 text-right text-sm font-semibold">{s.count}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Топ клинеров */}
+                <div className="rounded-2xl border border-border bg-card p-5">
+                  <h3 className="text-base font-bold">Топ клинеров</h3>
+                  {analytics.topExecutors.length === 0 ? (
+                    <p className="mt-3 text-sm text-muted-foreground">Ещё нет назначенных исполнителей.</p>
+                  ) : (
+                    <div className="mt-4 flex flex-col divide-y divide-border">
+                      {analytics.topExecutors.map((e, i) => (
+                        <div key={i} className="flex items-center justify-between gap-3 py-2.5">
+                          <span className="flex items-center gap-3">
+                            <span className="grid size-9 place-items-center rounded-full bg-brand-100 text-sm font-bold text-brand-700">{e.name[0]?.toUpperCase()}</span>
+                            <span className="font-medium">{e.name}</span>
+                          </span>
+                          <span className="flex items-center gap-4 text-sm">
+                            {e.rating > 0 && (
+                              <span className="inline-flex items-center gap-1"><Star className="size-4 fill-warning text-warning" />{e.rating.toFixed(1)}</span>
+                            )}
+                            <span className="text-muted-foreground">{e.done} уборок</span>
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* ── Bookings ── */}
         {tab === "bookings" && (
@@ -375,6 +468,39 @@ export function AdminPanel({ role }: { role: Role }) {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function StatCard({ icon, label, value, hint }: { icon: React.ReactNode; label: string; value: string; hint?: string }) {
+  return (
+    <div className="rounded-2xl border border-border bg-card p-4">
+      <p className="flex items-center gap-1.5 text-sm text-muted-foreground">{icon} {label}</p>
+      <p className="mt-1 text-2xl font-bold">{value}</p>
+      {hint && <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>}
+    </div>
+  );
+}
+
+function RevenueBars({ data }: { data: { day: string; revenue: number }[] }) {
+  if (data.length === 0) {
+    return <p className="mt-6 text-sm text-muted-foreground">Пока нет выполненных заказов.</p>;
+  }
+  const max = Math.max(...data.map((d) => d.revenue), 1);
+  return (
+    <div className="mt-5 flex h-40 items-end gap-1.5">
+      {data.map((d) => (
+        <div key={d.day} className="group relative flex flex-1 flex-col items-center justify-end">
+          <div
+            className="w-full rounded-t bg-brand-400 transition-colors group-hover:bg-brand-500"
+            style={{ height: `${Math.max((d.revenue / max) * 100, d.revenue > 0 ? 4 : 0)}%` }}
+          />
+          <span className="mt-1 text-[10px] text-muted-foreground">{d.day.slice(8)}</span>
+          <span className="pointer-events-none absolute -top-6 hidden whitespace-nowrap rounded bg-ink-950 px-2 py-1 text-[11px] font-medium text-white group-hover:block">
+            {formatPrice(d.revenue)}
+          </span>
+        </div>
+      ))}
     </div>
   );
 }
