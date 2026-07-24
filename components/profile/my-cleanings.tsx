@@ -165,14 +165,32 @@ function BookingCard({
           )}
         </div>
 
-        <div className="hidden shrink-0 flex-col items-center gap-2 sm:flex">
-          <span className="grid size-20 place-items-center rounded-full border-2 border-dashed border-border text-muted-foreground">
-            <User className="size-8" />
-          </span>
-          <span className="text-sm text-muted-foreground">
-            {isDone ? "Уборка завершена" : "Ищем клинера"}
-          </span>
-        </div>
+        {b.assignee ? (
+          <div className="hidden w-36 shrink-0 flex-col items-center gap-1.5 text-center sm:flex">
+            <span className="grid size-20 place-items-center rounded-full bg-brand-100 text-2xl font-bold text-brand-700">
+              {b.assignee.name[0]?.toUpperCase()}
+            </span>
+            <span className="text-sm font-semibold">{b.assignee.name}</span>
+            {b.assignee.rating > 0 && (
+              <span className="inline-flex items-center gap-1 text-sm font-medium">
+                <Star className="size-4 fill-warning text-warning" />
+                {b.assignee.rating.toFixed(1)}
+              </span>
+            )}
+            <span className="text-xs text-muted-foreground">
+              {b.assignee.doneCount > 0 ? `${b.assignee.doneCount} уборок` : "Ваш клинер"}
+            </span>
+          </div>
+        ) : (
+          <div className="hidden shrink-0 flex-col items-center gap-2 sm:flex">
+            <span className="grid size-20 place-items-center rounded-full border-2 border-dashed border-border text-muted-foreground">
+              <User className="size-8" />
+            </span>
+            <span className="text-sm text-muted-foreground">
+              {isDone ? "Уборка завершена" : "Ищем клинера"}
+            </span>
+          </div>
+        )}
       </div>
 
       {selected.length > 0 && (

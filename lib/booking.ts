@@ -43,6 +43,7 @@ export interface Booking extends BookingDraft {
   status: BookingStatus;
   paid?: boolean;
   reviewed?: boolean;
+  assignee?: { name: string; rating: number; doneCount: number } | null;
   createdAt: string;
 }
 

@@ -13,6 +13,14 @@ interface BookingRow {
   paid: boolean;
   created_at: string;
   reviewed: boolean;
+  assignee_id: string | null;
+  assignee_name: string | null;
+  assignee_rating: string | null;
+  assignee_done: number | null;
+}
+
+function firstName(name: string | null): string {
+  return name?.trim().split(/\s+/)[0] || "Клинер";
 }
 
 export async function GET() {
@@ -20,8 +28,14 @@ export async function GET() {
   if (!user) return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
 
   const rows = await query<BookingRow>(
-    `SELECT b.id, b.data, b.status, b.total, b.paid, b.created_at, (rv.id IS NOT NULL) AS reviewed
-       FROM bookings b LEFT JOIN reviews rv ON rv.booking_id = b.id
+    `SELECT b.id, b.data, b.status, b.total, b.paid, b.created_at,
+            (rv.id IS NOT NULL) AS reviewed,
+            b.assignee_id, au.name AS assignee_name,
+            (SELECT AVG(rating)::numeric(3,1) FROM reviews WHERE executor_id = b.assignee_id) AS assignee_rating,
+            (SELECT count(*)::int FROM bookings WHERE assignee_id = b.assignee_id AND status = 'done') AS assignee_done
+       FROM bookings b
+       LEFT JOIN reviews rv ON rv.booking_id = b.id
+       LEFT JOIN users au ON au.id = b.assignee_id
       WHERE b.user_id = $1 ORDER BY b.created_at DESC`,
     [user.id]
   );
@@ -33,6 +47,13 @@ export async function GET() {
     paid: r.paid,
     reviewed: r.reviewed,
     createdAt: r.created_at,
+    assignee: r.assignee_id
+      ? {
+          name: firstName(r.assignee_name),
+          rating: r.assignee_rating ? Number(r.assignee_rating) : 0,
+          doneCount: r.assignee_done ?? 0,
+        }
+      : null,
   }));
   return NextResponse.json({ ok: true, bookings });
 }
