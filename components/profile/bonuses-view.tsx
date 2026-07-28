@@ -46,7 +46,7 @@ export function BonusesView() {
       </div>
 
       {/* Referral hero */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-500 to-brand-700 p-7 text-white md:p-10">
+      <section className="relative overflow-hidden rounded-3xl bg-brand-500 p-7 text-white md:p-10">
         <div className="pointer-events-none absolute -right-16 -top-16 size-64 rounded-full bg-white/10 blur-2xl" />
         <div className="relative grid gap-8 lg:grid-cols-[1.3fr_1fr] lg:items-center">
           <div>

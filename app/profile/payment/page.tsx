@@ -54,7 +54,7 @@ export default function PaymentPage() {
           500 ₽ на бонусный счёт. Их можно использовать, чтобы оплатить 15%
           следующего заказа.
         </p>
-        <div className="mt-5 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 p-4">
+        <div className="mt-5 rounded-2xl bg-brand-500 p-4">
           <ReferralShare link={demoUser.referralLink} />
         </div>
       </aside>

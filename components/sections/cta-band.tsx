@@ -16,7 +16,7 @@ export function CtaBand({
 }: CtaBandProps) {
   return (
     <section className="container-page py-16 md:py-20">
-      <div className="relative overflow-hidden rounded-[2rem] border border-border bg-gradient-to-br from-brand-600 to-brand-800 px-6 py-14 text-center text-white md:px-12 md:py-20">
+      <div className="relative overflow-hidden rounded-[2rem] border border-border bg-brand-500 px-6 py-14 text-center text-white md:px-12 md:py-20">
         <div className="pointer-events-none absolute inset-0 bg-grid opacity-20" />
         <div className="pointer-events-none absolute -right-24 -top-24 size-72 rounded-full bg-white/10 blur-3xl" />
         <div className="relative mx-auto flex max-w-2xl flex-col items-center gap-6">

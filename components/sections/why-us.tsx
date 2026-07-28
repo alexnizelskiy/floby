@@ -29,7 +29,7 @@ export function WhyUs() {
         })}
       </div>
 
-      <div className="mt-10 grid gap-4 rounded-3xl border border-border bg-gradient-to-br from-brand-600 to-brand-800 p-8 text-white sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-10 grid gap-4 rounded-3xl border border-border bg-brand-500 p-8 text-white sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((s) => (
           <div key={s.label} className="text-center sm:text-left">
             <p className="text-4xl font-bold">{s.value}</p>

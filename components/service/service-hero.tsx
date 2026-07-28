@@ -52,7 +52,7 @@ export function ServiceHero({ service }: { service: Service }) {
         </div>
 
         <div className="relative">
-          <div className="rounded-3xl border border-border bg-gradient-to-br from-brand-500 to-brand-700 p-8 text-white shadow-[var(--shadow-lg)]">
+          <div className="rounded-3xl border border-border bg-brand-500 p-8 text-white shadow-[var(--shadow-lg)]">
             <p className="text-sm text-white/80">{service.tagline}</p>
             <p className="mt-2 text-3xl font-bold">от {formatPrice(service.priceFrom)}</p>
             <p className="mt-1 text-sm text-white/80">{service.unit} · {service.duration}</p>
