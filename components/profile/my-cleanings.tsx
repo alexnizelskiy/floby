@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { MapPin, User, Plus, HelpCircle, Check, Repeat, Star } from "lucide-react";
+import { MapPin, User, Plus, HelpCircle, Check, Repeat, Star, ChevronDown } from "lucide-react";
 import { QuickOrder } from "@/components/profile/quick-order";
 import { RateOrder } from "@/components/profile/rate-order";
 import { getIcon } from "@/lib/icons";
@@ -12,8 +12,14 @@ import {
   estimateDurationHours,
   endTime,
   formatDateCard,
+  generateDates,
+  generateTimes,
+  formatDateLong,
   type Booking,
 } from "@/lib/booking";
+
+const rescheduleDates = generateDates(14);
+const rescheduleTimes = generateTimes();
 
 export function MyCleanings() {
   const [bookings, setBookings] = React.useState<Booking[] | null>(null);
@@ -156,6 +162,25 @@ function BookingCard({
   ).slice(0, 8);
   const isDone = b.status === "done";
 
+  const [rescheduling, setRescheduling] = React.useState(false);
+  const [rDate, setRDate] = React.useState(b.date);
+  const [rTime, setRTime] = React.useState(b.time);
+  const [busy, setBusy] = React.useState(false);
+
+  async function patch(payload: Record<string, unknown>) {
+    setBusy(true);
+    try {
+      await fetch(`/api/bookings/${b.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      onReviewed();
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <div className="p-6">
       <div className="flex items-start justify-between gap-4">
@@ -191,10 +216,43 @@ function BookingCard({
                 <RateOrder bookingId={b.id} onDone={onReviewed} />
               )}
             </div>
+          ) : rescheduling ? (
+            <div className="mt-4 flex flex-col gap-3">
+              <div className="grid max-w-md grid-cols-2 gap-2">
+                <SlotSelect value={rDate} onChange={setRDate}>
+                  {rescheduleDates.map((d) => (
+                    <option key={d} value={d}>{formatDateLong(d)}</option>
+                  ))}
+                </SlotSelect>
+                <SlotSelect value={rTime} onChange={setRTime}>
+                  {rescheduleTimes.map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </SlotSelect>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={async () => { await patch({ action: "reschedule", date: rDate, time: rTime }); setRescheduling(false); }}
+                  className="rounded-xl bg-brand-500 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-600 disabled:opacity-50"
+                >
+                  {busy ? "Сохраняем…" : "Сохранить"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setRescheduling(false); setRDate(b.date); setRTime(b.time); }}
+                  className="rounded-xl border border-border px-6 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-surface"
+                >
+                  Отмена
+                </button>
+              </div>
+            </div>
           ) : (
-            <div className="mt-4 flex gap-3">
+            <div className="mt-4 flex flex-wrap gap-3">
               <button
                 type="button"
+                onClick={() => setRescheduling(true)}
                 className="rounded-xl bg-ink-950 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-ink-900"
               >
                 Перенести
@@ -206,6 +264,16 @@ function BookingCard({
               >
                 Отменить
               </button>
+              {b.subscription && b.subscription !== "none" && (
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => patch({ action: "cancel_subscription" })}
+                  className="rounded-xl border border-border px-6 py-2.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-surface disabled:opacity-50"
+                >
+                  Отменить подписку
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -270,6 +338,21 @@ function BookingCard({
           </span>
         )}
       </div>
+    </div>
+  );
+}
+
+function SlotSelect({ value, onChange, children }: { value: string; onChange: (v: string) => void; children: React.ReactNode }) {
+  return (
+    <div className="relative">
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="h-11 w-full appearance-none rounded-xl border border-input bg-background px-3 pr-9 text-sm focus-visible:border-brand-400 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring"
+      >
+        {children}
+      </select>
+      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
     </div>
   );
 }
