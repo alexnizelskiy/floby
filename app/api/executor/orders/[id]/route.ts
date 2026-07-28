@@ -3,6 +3,7 @@ import { query } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { handleOrderCompleted } from "@/lib/bonus";
 import { createNextIfRecurring } from "@/lib/subscription";
+import { rememberPreferredExecutor } from "@/lib/preferred";
 import { notifyBookingStatus } from "@/lib/notify";
 
 // executors may only move their own order forward
@@ -28,6 +29,7 @@ export async function PATCH(
   await notifyBookingStatus(id, body.status).catch(() => {});
   if (body.status === "done") {
     await handleOrderCompleted(id);
+    await rememberPreferredExecutor(id);
     await createNextIfRecurring(id);
   }
   return NextResponse.json({ ok: true });

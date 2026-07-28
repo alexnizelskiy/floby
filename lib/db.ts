@@ -88,6 +88,7 @@ ALTER TABLE bookings ADD COLUMN IF NOT EXISTS bonus_used INT NOT NULL DEFAULT 0;
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS promo_code TEXT;
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS promo_discount INT NOT NULL DEFAULT 0;
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS recurring_spawned BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS preferred_executor_id TEXT REFERENCES users(id) ON DELETE SET NULL;
 `;
 
 // Prepared statements can't run multiple commands at once — split & run each.

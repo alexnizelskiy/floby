@@ -3,6 +3,7 @@ import { query } from "@/lib/db";
 import { getCurrentUser, isStaff } from "@/lib/auth";
 import { handleOrderCompleted } from "@/lib/bonus";
 import { createNextIfRecurring } from "@/lib/subscription";
+import { rememberPreferredExecutor } from "@/lib/preferred";
 import { notifyBookingStatus } from "@/lib/notify";
 
 const STATUSES = ["searching", "assigned", "in_progress", "done", "cancelled"];
@@ -36,6 +37,7 @@ export async function PATCH(
     await notifyBookingStatus(id, body.status).catch(() => {});
     if (body.status === "done") {
       await handleOrderCompleted(id);
+      await rememberPreferredExecutor(id);
       await createNextIfRecurring(id);
     }
   }

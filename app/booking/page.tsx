@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { CheckCircle2, Zap, CreditCard, ChevronDown, ShieldCheck } from "lucide-react";
+import { CheckCircle2, Zap, CreditCard, ChevronDown, ShieldCheck, Repeat } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SmsAuthModal } from "@/features/booking/sms-auth-modal";
 import { CalculatorControls } from "@/features/calculator/calculator-controls";
@@ -25,7 +25,9 @@ import {
   generateTimes,
   formatDateLong,
   surgeForSlot,
+  subscriptions,
   type PaymentMethod,
+  type SubscriptionPlan,
 } from "@/lib/booking";
 
 const dates = generateDates(14);
@@ -75,6 +77,7 @@ export default function BookingPage() {
   const [date, setDate] = React.useState(dates[0]);
   const [time, setTime] = React.useState("12:00");
   const [payment, setPayment] = React.useState<PaymentMethod>("card");
+  const [subscription, setSubscription] = React.useState<SubscriptionPlan>("none");
   const [comment, setComment] = React.useState("");
   const [streetError, setStreetError] = React.useState(false);
   const [phoneError, setPhoneError] = React.useState(false);
@@ -205,7 +208,7 @@ export default function BookingPage() {
       floor,
       intercom,
       comment,
-      subscription: "none",
+      subscription,
       price,
     };
     try {
@@ -372,6 +375,22 @@ export default function BookingPage() {
                   <Zap className="size-4 fill-sky-400 text-sky-400" /> Повышенный спрос — цена временно выше.
                 </p>
               )}
+
+              {/* Подписка + постоянный клинер */}
+              <div className="flex flex-col gap-1.5">
+                <span className="text-sm font-medium text-foreground">Регулярность</span>
+                <Select value={subscription} onChange={(v) => setSubscription(v as SubscriptionPlan)}>
+                  {subscriptions.map((s) => (
+                    <option key={s.id} value={s.id}>{s.title}</option>
+                  ))}
+                </Select>
+                {subscription !== "none" && (
+                  <p className="flex items-start gap-1.5 text-xs text-brand-700">
+                    <Repeat className="mt-0.5 size-3.5 shrink-0" />
+                    На регулярные уборки будет приезжать один и тот же проверенный клинер.
+                  </p>
+                )}
+              </div>
 
               {/* Payment */}
               <div className="flex gap-5 border-b border-border">

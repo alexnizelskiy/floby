@@ -52,6 +52,8 @@ export function MyCleanings() {
   const list = tab === "done" ? done : upcoming;
 
   return (
+    <div className="flex flex-col gap-5">
+    <PreferredCleanerCard />
     <div className="rounded-2xl border border-border bg-card">
       <div className="flex gap-6 border-b border-border px-6 pt-5">
         {(
@@ -94,6 +96,42 @@ export function MyCleanings() {
           ))}
         </div>
       )}
+    </div>
+    </div>
+  );
+}
+
+function PreferredCleanerCard() {
+  const [cleaner, setCleaner] = React.useState<{ name: string; rating: number; doneCount: number } | null>(null);
+
+  React.useEffect(() => {
+    fetch("/api/profile/cleaner")
+      .then((r) => r.json())
+      .then((d) => d.ok && setCleaner(d.cleaner))
+      .catch(() => {});
+  }, []);
+
+  if (!cleaner) return null;
+
+  return (
+    <div className="flex items-center gap-4 rounded-2xl border border-brand-200 bg-brand-50/50 p-5">
+      <span className="grid size-14 shrink-0 place-items-center rounded-full bg-brand-100 text-2xl font-bold text-brand-700">
+        {cleaner.name[0]?.toUpperCase()}
+      </span>
+      <div className="min-w-0">
+        <p className="flex items-center gap-1.5 text-sm font-semibold text-brand-700">
+          <Repeat className="size-4" /> Ваш постоянный клинер
+        </p>
+        <p className="mt-0.5 text-lg font-bold">{cleaner.name}</p>
+        <p className="flex items-center gap-2 text-sm text-muted-foreground">
+          {cleaner.rating > 0 && (
+            <span className="inline-flex items-center gap-1">
+              <Star className="size-4 fill-warning text-warning" /> {cleaner.rating.toFixed(1)}
+            </span>
+          )}
+          {cleaner.doneCount > 0 && <span>{cleaner.doneCount} уборок для вас и других</span>}
+        </p>
+      </div>
     </div>
   );
 }
@@ -187,6 +225,11 @@ function BookingCard({
             <span className="text-xs text-muted-foreground">
               {b.assignee.doneCount > 0 ? `${b.assignee.doneCount} уборок` : "Ваш клинер"}
             </span>
+            {b.subscription && b.subscription !== "none" && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-brand-100 px-2 py-0.5 text-[11px] font-semibold text-brand-700">
+                <Repeat className="size-3" /> Постоянный
+              </span>
+            )}
           </div>
         ) : (
           <div className="hidden shrink-0 flex-col items-center gap-2 sm:flex">

@@ -1,5 +1,6 @@
 import { query, queryOne } from "@/lib/db";
 import { newId } from "@/lib/auth";
+import { getPreferredExecutorId } from "@/lib/preferred";
 
 const INTERVAL_DAYS: Record<string, number> = { weekly: 7, biweekly: 14 };
 
@@ -32,11 +33,15 @@ export async function createNextIfRecurring(bookingId: string): Promise<void> {
   const gross = Number(price.total ?? b.total ?? 0);
   const nextData = { ...data, date: nextDate, bonusUsed: 0 };
 
+  // тот же (постоянный) клинер: берём исполнителя с прошлой уборки,
+  // либо закреплённого за клиентом
+  const assignee = b.assignee_id ?? (await getPreferredExecutorId(b.user_id));
+
   const id = newId();
-  const status = b.assignee_id ? "assigned" : "searching";
+  const status = assignee ? "assigned" : "searching";
   await query(
     "INSERT INTO bookings (id, user_id, data, status, total, assignee_id) VALUES ($1, $2, $3, $4, $5, $6)",
-    [id, b.user_id, JSON.stringify(nextData), status, gross, b.assignee_id]
+    [id, b.user_id, JSON.stringify(nextData), status, gross, assignee]
   );
   await query("UPDATE bookings SET recurring_spawned = true WHERE id = $1", [bookingId]);
 }
