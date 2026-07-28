@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     const payment = await createPayment({
       amount: booking.total,
       description: `Уборка floby, заказ ${booking.id.slice(0, 8)}`,
-      bookingId: booking.id,
+      metadata: { booking_id: booking.id },
       returnUrl,
     });
 

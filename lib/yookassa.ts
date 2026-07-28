@@ -26,8 +26,8 @@ export interface CreatedPayment {
 export async function createPayment(opts: {
   amount: number;
   description: string;
-  bookingId: string;
   returnUrl: string;
+  metadata?: Record<string, string>;
 }): Promise<CreatedPayment | null> {
   const authHeader = auth();
   if (!authHeader) return null;
@@ -44,7 +44,7 @@ export async function createPayment(opts: {
       capture: true,
       confirmation: { type: "redirect", return_url: opts.returnUrl },
       description: opts.description,
-      metadata: { booking_id: opts.bookingId },
+      metadata: opts.metadata ?? {},
     }),
   });
 
@@ -62,7 +62,7 @@ export async function createPayment(opts: {
 /** Fetch a payment (to verify status from a webhook). */
 export async function getPayment(
   id: string
-): Promise<{ id: string; status: string; metadata?: { booking_id?: string } } | null> {
+): Promise<{ id: string; status: string; metadata?: { booking_id?: string; gift_id?: string } } | null> {
   const authHeader = auth();
   if (!authHeader) return null;
   const res = await fetch(`${API}/payments/${id}`, { headers: { Authorization: authHeader } });

@@ -57,6 +57,7 @@ export const footerNav: { title: string; links: NavLink[] }[] = [
       { label: "О нас", href: "/about" },
       { label: "Отзывы", href: "/reviews" },
       { label: "Цены", href: "/prices" },
+      { label: "Подарочный сертификат", href: "/gift" },
       { label: "Города", href: "/cities" },
       { label: "Контакты", href: "/contacts" },
     ],

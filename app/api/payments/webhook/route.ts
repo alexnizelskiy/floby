@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import { getPayment } from "@/lib/yookassa";
+import { activateCertificate } from "@/lib/gift";
 
-/** ЮKassa notifications: mark a booking paid when its payment succeeds. */
+/** ЮKassa notifications: mark a booking paid or activate a gift on success. */
 export async function POST(request: Request) {
   const body = (await request.json().catch(() => null)) as {
     event?: string;
-    object?: { id?: string; status?: string; metadata?: { booking_id?: string } };
+    object?: { id?: string; status?: string; metadata?: { booking_id?: string; gift_id?: string } };
   } | null;
 
   if (!body?.object?.id) return NextResponse.json({ ok: true });
@@ -15,9 +16,14 @@ export async function POST(request: Request) {
     // Verify against the API (don't trust the payload blindly)
     const verified = await getPayment(body.object.id);
     const status = verified?.status ?? body.object.status;
-    const bookingId = verified?.metadata?.booking_id ?? body.object.metadata?.booking_id;
-    if (status === "succeeded" && bookingId) {
-      await query("UPDATE bookings SET paid = true, status = 'searching' WHERE id = $1", [bookingId]);
+    const meta = verified?.metadata ?? body.object.metadata ?? {};
+    if (status === "succeeded") {
+      if (meta.booking_id) {
+        await query("UPDATE bookings SET paid = true, status = 'searching' WHERE id = $1", [meta.booking_id]);
+      }
+      if (meta.gift_id) {
+        await activateCertificate(meta.gift_id);
+      }
     }
   }
 

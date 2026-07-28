@@ -64,6 +64,19 @@ CREATE TABLE IF NOT EXISTS reviews (
   service TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+CREATE TABLE IF NOT EXISTS gift_certificates (
+  id TEXT PRIMARY KEY,
+  code TEXT UNIQUE NOT NULL,
+  amount INT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending',
+  buyer_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+  buyer_name TEXT,
+  message TEXT,
+  payment_id TEXT,
+  redeemed_by TEXT REFERENCES users(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  redeemed_at TIMESTAMPTZ
+);
 CREATE TABLE IF NOT EXISTS promo_codes (
   id TEXT PRIMARY KEY,
   code TEXT UNIQUE NOT NULL,
