@@ -1,6 +1,6 @@
 import { Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { OrderCta } from "@/components/forms/order-cta";
+import { OrderButton } from "@/components/forms/order-button";
 import { siteConfig } from "@/lib/site";
 
 interface CtaBandProps {
@@ -23,7 +23,7 @@ export function CtaBand({
           <h2 className="text-3xl font-bold md:text-4xl lg:text-[2.75rem]">{title}</h2>
           <p className="text-lg text-white/85">{description}</p>
           <div className="flex flex-col gap-3 sm:flex-row">
-            <OrderCta variant="white" size="xl" source={source} />
+            <OrderButton variant="white" size="xl" />
             <Button asChild variant="outline" size="xl" className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:border-white/40">
               <a href={siteConfig.contacts.phoneHref}>
                 <Phone /> {siteConfig.contacts.phone}

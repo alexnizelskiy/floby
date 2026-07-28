@@ -1,9 +1,11 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import { Minus, Plus } from "lucide-react";
-import { OrderCta } from "@/components/forms/order-cta";
+import { Button } from "@/components/ui/button";
 import { plural } from "@/lib/utils";
+import { saveCalcDraft, defaultCalcState } from "@/lib/calc";
 
 function Stepper({
   label,
@@ -44,10 +46,17 @@ function Stepper({
 }
 
 export function QuickOrder() {
+  const router = useRouter();
   const [rooms, setRooms] = React.useState(1);
   const [baths, setBaths] = React.useState(1);
 
   const summary = `${rooms} ${plural(rooms, ["комната", "комнаты", "комнат"])}, ${baths} ${plural(baths, ["санузел", "санузла", "санузлов"])}`;
+
+  function order() {
+    const addons: Record<string, number> = baths > 1 ? { bathroom: baths - 1 } : {};
+    saveCalcDraft({ ...defaultCalcState, rooms, addons });
+    router.push("/booking");
+  }
 
   return (
     <div className="rounded-2xl border border-border bg-card p-6 md:p-8">
@@ -69,13 +78,9 @@ export function QuickOrder() {
           value={baths}
           onChange={setBaths}
         />
-        <OrderCta
-          size="lg"
-          className="mt-1 w-full"
-          source="profile-quick-order"
-          label="Заказать уборку"
-          defaultService="Поддерживающая уборка"
-        />
+        <Button size="lg" className="mt-1 w-full" onClick={order}>
+          Заказать уборку
+        </Button>
         <p className="text-center text-xs text-muted-foreground">
           Нажимая «Заказать уборку», вы соглашаетесь с обработкой персональных
           данных и условиями сервиса. Выбрано: {summary}.

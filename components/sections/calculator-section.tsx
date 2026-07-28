@@ -1,5 +1,5 @@
 import { Section, SectionHeading } from "@/components/ui/section";
-import { Calculator } from "@/features/calculator/calculator";
+import { HomeCalculator } from "@/features/calculator/home-calculator";
 
 export function CalculatorSection() {
   return (
@@ -7,10 +7,10 @@ export function CalculatorSection() {
       <SectionHeading
         eyebrow="Калькулятор стоимости"
         title="Рассчитайте цену уборки за минуту"
-        description="Выберите параметры — и увидите стоимость сразу, без ожидания и звонков."
+        description="Выберите параметры — сумма считается сразу. Добавляйте услуги и оформляйте заказ онлайн."
       />
       <div className="mt-12">
-        <Calculator />
+        <HomeCalculator />
       </div>
     </Section>
   );

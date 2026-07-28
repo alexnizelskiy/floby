@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Clock, Wallet, ShieldCheck, ArrowRight } from "lucide-react";
-import { OrderCta } from "@/components/forms/order-cta";
+import { OrderButton } from "@/components/forms/order-button";
 import { Button } from "@/components/ui/button";
 import { getIcon } from "@/lib/icons";
 import { formatPrice } from "@/lib/utils";
@@ -42,7 +42,7 @@ export function ServiceHero({ service }: { service: Service }) {
           </div>
 
           <div className="flex flex-col gap-3 pt-2 sm:flex-row">
-            <OrderCta size="xl" source={`service-${service.slug}`} defaultService={service.title} />
+            <OrderButton size="xl" defaultService={service.slug} />
             <Button asChild variant="outline" size="xl">
               <Link href="/prices">
                 Все цены <ArrowRight />

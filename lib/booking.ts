@@ -44,6 +44,9 @@ export interface Booking extends BookingDraft {
   paid?: boolean;
   reviewed?: boolean;
   assignee?: { name: string; rating: number; doneCount: number } | null;
+  /** Human-readable selected add-ons from the calculator (preferred for display). */
+  services?: { id: string; title: string; qty: number; price: number }[];
+  cleaningType?: string;
   createdAt: string;
 }
 

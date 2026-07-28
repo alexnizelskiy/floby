@@ -108,7 +108,14 @@ function BookingCard({
   onReviewed: () => void;
 }) {
   const duration = estimateDurationHours(b.rooms, b.baths);
-  const selected = b.optionIds.map((id) => optionMap.get(id)).filter(Boolean).slice(0, 3);
+  // предпочитаем читаемый список услуг из калькулятора, иначе старые optionIds
+  const selected = (b.services && b.services.length > 0
+    ? b.services.map((s) => ({ id: s.id, title: s.qty > 1 ? `${s.title} ×${s.qty}` : s.title, price: s.price }))
+    : b.optionIds
+        .map((id) => optionMap.get(id))
+        .filter(Boolean)
+        .map((o) => ({ id: o!.id, title: o!.title, price: o!.price }))
+  ).slice(0, 8);
   const isDone = b.status === "done";
 
   return (
@@ -194,21 +201,13 @@ function BookingCard({
       </div>
 
       {selected.length > 0 && (
-        <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {selected.map((o) => {
-            const Icon = getIcon(o!.icon);
-            return (
-              <div key={o!.id} className="flex flex-col items-center gap-2 rounded-xl border border-border p-4 text-center">
-                <Icon className="size-5 text-muted-foreground" />
-                <span className="text-xs font-medium leading-snug">{o!.title}</span>
-                <span className="text-sm font-semibold text-brand-600">+ {formatPrice(o!.price)}</span>
-              </div>
-            );
-          })}
-          <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border p-4 text-center text-muted-foreground">
-            <Plus className="size-5" />
-            <span className="text-xs font-medium">Показать ещё опции</span>
-          </div>
+        <div className="mt-5 flex flex-wrap gap-2">
+          {selected.map((o) => (
+            <span key={o.id} className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-medium">
+              {o.title}
+              {o.price > 0 && <span className="font-semibold text-brand-600">+{formatPrice(o.price)}</span>}
+            </span>
+          ))}
         </div>
       )}
 

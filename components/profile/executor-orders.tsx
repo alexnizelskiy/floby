@@ -130,11 +130,15 @@ export function ExecutorOrders() {
                       <Phone className="size-3.5" /> {o.client.phone}
                     </a>
                   </p>
-                  {o.optionIds && o.optionIds.length > 0 && (
+                  {o.services && o.services.length > 0 ? (
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Опции: {o.services.map((s) => (s.qty > 1 ? `${s.title} ×${s.qty}` : s.title)).join(", ")}
+                    </p>
+                  ) : o.optionIds && o.optionIds.length > 0 ? (
                     <p className="mt-1 text-sm text-muted-foreground">
                       Опции: {o.optionIds.map((id) => optionMap.get(id)?.title ?? id).join(", ")}
                     </p>
-                  )}
+                  ) : null}
                   {o.comment && (
                     <p className="mt-1 text-sm"><span className="text-muted-foreground">Пожелания: </span>{o.comment}</p>
                   )}

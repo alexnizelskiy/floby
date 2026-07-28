@@ -4,7 +4,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Section, SectionHeading } from "@/components/ui/section";
 import { CalculatorSection } from "@/components/sections/calculator-section";
 import { CtaBand } from "@/components/sections/cta-band";
-import { OrderCta } from "@/components/forms/order-cta";
+import { OrderButton } from "@/components/forms/order-button";
 import { buildMetadata } from "@/lib/seo";
 import { formatPrice, cn } from "@/lib/utils";
 import { priceTiers, addons } from "@/content/prices";
@@ -60,7 +60,7 @@ export default function PricesPage() {
                   <td className="px-5 py-4 font-semibold">{formatPrice(t.regular)}</td>
                   <td className="px-5 py-4 font-semibold">{formatPrice(t.deep)}</td>
                   <td className="px-5 py-4 text-right">
-                    <OrderCta size="sm" label="Заказать" source="prices-table" />
+                    <OrderButton size="sm" label="Заказать" />
                   </td>
                 </tr>
               ))}

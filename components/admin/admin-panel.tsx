@@ -30,6 +30,7 @@ interface AdminBooking {
   date?: string; time?: string; payment?: string;
   comment?: string; entrance?: string; floor?: string; intercom?: string;
   optionIds?: string[];
+  services?: { id: string; title: string; qty: number; price: number }[];
 }
 interface AdminUser {
   id: string; phone: string; name: string | null; email: string | null;
@@ -297,11 +298,15 @@ export function AdminPanel({ role }: { role: Role }) {
                         <span> · подъезд {b.entrance || "—"}, этаж {b.floor || "—"}, домофон {b.intercom || "—"}</span>
                       )}
                     </p>
-                    {b.optionIds && b.optionIds.length > 0 && (
+                    {b.services && b.services.length > 0 ? (
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        Опции: {b.services.map((s) => (s.qty > 1 ? `${s.title} ×${s.qty}` : s.title)).join(", ")}
+                      </p>
+                    ) : b.optionIds && b.optionIds.length > 0 ? (
                       <p className="mt-1 text-sm text-muted-foreground">
                         Опции: {b.optionIds.map((id) => optionMap.get(id)?.title ?? id).join(", ")}
                       </p>
-                    )}
+                    ) : null}
                     {b.comment && (
                       <p className="mt-1 text-sm">
                         <span className="text-muted-foreground">Пожелания: </span>{b.comment}

@@ -6,8 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Minus, Plus } from "lucide-react";
 import { plural, cn } from "@/lib/utils";
-import { SmsAuthModal } from "@/features/booking/sms-auth-modal";
-import { saveDraft, setAuthPhone } from "@/lib/booking";
+import { saveCalcDraft, defaultCalcState } from "@/lib/calc";
 
 /** Rounded stepper pill: − [label] + */
 function Stepper({
@@ -54,7 +53,6 @@ function HeroForm() {
   const [baths, setBaths] = React.useState(1);
   const [phone, setPhone] = React.useState("");
   const [error, setError] = React.useState(false);
-  const [smsOpen, setSmsOpen] = React.useState(false);
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -62,13 +60,9 @@ function HeroForm() {
       setError(true);
       return;
     }
-    setSmsOpen(true);
-  }
-
-  function onVerified() {
-    saveDraft({ rooms, baths, phone });
-    setAuthPhone(phone);
-    setSmsOpen(false);
+    // санузлы сверх одного переносим в доп.услугу «Уборка санузла»
+    const addons: Record<string, number> = baths > 1 ? { bathroom: baths - 1 } : {};
+    saveCalcDraft({ ...defaultCalcState, rooms, addons, phone });
     router.push("/booking");
   }
 
@@ -104,13 +98,6 @@ function HeroForm() {
           Рассчитать стоимость
         </button>
       </div>
-
-      <SmsAuthModal
-        open={smsOpen}
-        phone={phone}
-        onClose={() => setSmsOpen(false)}
-        onVerified={onVerified}
-      />
 
       <p className="mt-4 text-center text-sm text-muted-foreground">
         Нажимая «Рассчитать стоимость», я даю согласие на{" "}
