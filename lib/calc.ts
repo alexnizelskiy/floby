@@ -5,6 +5,15 @@
  */
 
 export type CalcCleaningType = "regular" | "general" | "post_renovation";
+export type PropertyType = "apartment" | "house";
+
+export const propertyTypes: { id: PropertyType; label: string }[] = [
+  { id: "apartment", label: "Квартира" },
+  { id: "house", label: "Дом" },
+];
+
+/** Дом больше и сложнее — надбавка к базовой стоимости и времени. */
+const PROPERTY_MULT: Record<PropertyType, number> = { apartment: 1, house: 1.4 };
 
 export interface RoomTier {
   rooms: number; // 1..5 (5 = «5+»)
@@ -82,6 +91,7 @@ const TYPE_TIME_MULT: Record<CalcCleaningType, number> = { regular: 1, general: 
 export interface CalcState {
   rooms: number;
   cleaningType: CalcCleaningType;
+  propertyType: PropertyType;
   addons: Record<string, number>; // id -> qty (toggle = 0/1)
 }
 
@@ -100,7 +110,8 @@ export function clampRooms(r: number) {
 
 export function computeCalc(state: CalcState): CalcResult {
   const rooms = clampRooms(state.rooms);
-  const base = BASE[state.cleaningType]?.[rooms] ?? BASE.regular[rooms];
+  const propMult = PROPERTY_MULT[state.propertyType] ?? 1;
+  const base = Math.round(((BASE[state.cleaningType]?.[rooms] ?? BASE.regular[rooms]) * propMult) / 10) * 10;
 
   let addonsTotal = 0;
   let extraMin = 0;
@@ -120,7 +131,7 @@ export function computeCalc(state: CalcState): CalcResult {
   const ecoAmount = eco ? Math.round((beforeEco * ECO_PERCENT) / 100) : 0;
   const total = Math.round((beforeEco + ecoAmount) / 10) * 10;
 
-  const minutes = Math.round((BASE_MIN[rooms] ?? 180) * TYPE_TIME_MULT[state.cleaningType] + extraMin);
+  const minutes = Math.round((BASE_MIN[rooms] ?? 180) * TYPE_TIME_MULT[state.cleaningType] * propMult + extraMin);
 
   return { base, addonsTotal, ecoAmount, total, minutes, durationLabel: formatDuration(minutes) };
 }
@@ -135,9 +146,10 @@ export function formatDuration(min: number): string {
 
 const RU_ROOMS = ["", "одной жилой комнатой", "двумя жилыми комнатами", "тремя жилыми комнатами", "четырьмя жилыми комнатами", "пятью+ жилыми комнатами"];
 
-export function calcTitle(rooms: number): string {
+export function calcTitle(rooms: number, propertyType: PropertyType = "apartment"): string {
   const r = clampRooms(rooms);
-  return `Уборка квартиры с ${RU_ROOMS[r]} и одним санузлом`;
+  const place = propertyType === "house" ? "дома" : "квартиры";
+  return `Уборка ${place} с ${RU_ROOMS[r]} и одним санузлом`;
 }
 
 /** Человекочитаемый список выбранных доп.услуг (для кабинета / заказа). */
@@ -160,7 +172,7 @@ export interface CalcDraft extends CalcState {
 
 const DRAFT_KEY = "floby-calc-draft";
 
-export const defaultCalcState: CalcState = { rooms: 1, cleaningType: "regular", addons: {} };
+export const defaultCalcState: CalcState = { rooms: 1, cleaningType: "regular", propertyType: "apartment", addons: {} };
 
 export function saveCalcDraft(d: CalcDraft) {
   if (typeof window === "undefined") return;

@@ -7,6 +7,7 @@ import {
   roomTiers,
   calcCleaningTypes,
   calcAddons,
+  propertyTypes,
   type CalcState,
   type CalcAddon,
 } from "@/lib/calc";
@@ -25,6 +26,7 @@ export function CalculatorControls({
   const [includedOpen, setIncludedOpen] = React.useState(false);
 
   const setRooms = (rooms: number) => onChange({ ...state, rooms });
+  const setProperty = (propertyType: CalcState["propertyType"]) => onChange({ ...state, propertyType });
   const setAddon = (id: string, qty: number) =>
     onChange({ ...state, addons: { ...state.addons, [id]: Math.max(0, qty) } });
   const clearAddons = () => onChange({ ...state, addons: {} });
@@ -40,6 +42,29 @@ export function CalculatorControls({
 
   return (
     <div className="flex flex-col gap-8">
+      {/* Тип помещения */}
+      <div>
+        <span className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          Тип помещения
+        </span>
+        <div className="mt-4 inline-flex rounded-full border border-border bg-white p-1">
+          {propertyTypes.map((p) => (
+            <button
+              key={p.id}
+              type="button"
+              onClick={() => setProperty(p.id)}
+              aria-pressed={state.propertyType === p.id}
+              className={cn(
+                "rounded-full px-6 py-2 text-sm font-semibold transition-colors",
+                state.propertyType === p.id ? "bg-ink-950 text-white" : "text-foreground hover:bg-surface"
+              )}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Комнаты + тип уборки */}
       <div className="grid gap-8 sm:grid-cols-2">
         <div>

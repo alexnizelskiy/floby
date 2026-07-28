@@ -37,7 +37,7 @@ export function HomeCalculator() {
   React.useEffect(() => {
     const d = getCalcDraft();
     if (d) {
-      setState({ rooms: d.rooms, cleaningType: d.cleaningType, addons: d.addons });
+      setState({ rooms: d.rooms, cleaningType: d.cleaningType, propertyType: d.propertyType, addons: d.addons });
       if (d.name) setName(d.name);
       if (d.phone) setPhone(d.phone);
       if (d.date) setDate(d.date);
@@ -72,7 +72,7 @@ export function HomeCalculator() {
       <div className="lg:sticky lg:top-24 lg:self-start">
         <div className="flex flex-col gap-4 rounded-3xl border border-border bg-card p-5 md:p-6">
           <div className="rounded-2xl bg-surface p-5">
-            <p className="text-sm text-muted-foreground">{calcTitle(state.rooms)}</p>
+            <p className="text-sm text-muted-foreground">{calcTitle(state.rooms, state.propertyType)}</p>
             <div className="mt-3 flex items-baseline justify-between">
               <span className="text-sm text-muted-foreground">К оплате</span>
               <span className="text-3xl font-bold">{formatPrice(result.total)}</span>

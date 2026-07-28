@@ -41,6 +41,7 @@ export const primaryNav: NavLink[] = [
 /** Доп. ссылки (в мобильном меню и футере). */
 export const secondaryNav: NavLink[] = [
   { label: "Города", href: "/cities" },
+  { label: "Бизнесу", href: "/business" },
   { label: "Вакансии", href: "/vacancies" },
   { label: "Работа в floby", href: "/work-with-us" },
   { label: "Помощь", href: "/help" },
