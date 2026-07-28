@@ -3,7 +3,9 @@ import { Hero } from "@/components/sections/hero";
 import { Reasons } from "@/components/sections/reasons";
 import { ServicesGrid } from "@/components/sections/services-grid";
 import { CleaningChecklist } from "@/components/sections/cleaning-checklist";
+import { NotIncluded } from "@/components/sections/not-included";
 import { HowItWorks } from "@/components/sections/how-it-works";
+import { CleanersTrust } from "@/components/sections/cleaners-trust";
 import { CalculatorSection } from "@/components/sections/calculator-section";
 import { ReviewsSlider } from "@/components/sections/reviews-slider";
 import { FaqSection } from "@/components/sections/faq-section";
@@ -34,7 +36,9 @@ export default function HomePage() {
       <Reasons />
       <ServicesGrid />
       <CleaningChecklist />
+      <NotIncluded />
       <HowItWorks />
+      <CleanersTrust />
       <CalculatorSection />
       <ReviewsSlider />
       <FaqSection items={homeFaq} />

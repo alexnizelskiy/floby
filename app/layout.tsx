@@ -4,6 +4,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
+import { PromoBanner } from "@/components/layout/promo-banner";
 import { ThemeScript } from "@/components/theme/theme-toggle";
 import { JsonLd } from "@/components/seo/json-ld";
 import { RefCapture } from "@/components/referral/ref-capture";
@@ -61,6 +62,7 @@ export default function RootLayout({
       <body className="flex min-h-dvh flex-col antialiased">
         <JsonLd data={[localBusinessJsonLd(), websiteJsonLd()]} />
         <RefCapture />
+        <PromoBanner />
         <Header />
         <main className="flex-1">{children}</main>
         <Footer />

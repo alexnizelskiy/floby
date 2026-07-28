@@ -102,6 +102,8 @@ ALTER TABLE bookings ADD COLUMN IF NOT EXISTS promo_code TEXT;
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS promo_discount INT NOT NULL DEFAULT 0;
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS recurring_spawned BOOLEAN NOT NULL DEFAULT false;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS preferred_executor_id TEXT REFERENCES users(id) ON DELETE SET NULL;
+-- welcome promo for new clients (idempotent)
+INSERT INTO promo_codes (id, code, discount_type, value, active, min_order) VALUES ('seed-clean15', 'CLEAN15', 'percent', 15, true, 0) ON CONFLICT (code) DO NOTHING;
 `;
 
 // Prepared statements can't run multiple commands at once — split & run each.
