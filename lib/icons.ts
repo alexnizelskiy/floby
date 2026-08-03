@@ -29,6 +29,8 @@ import {
   GraduationCap,
   Percent,
   Calculator,
+  LayoutDashboard,
+  CalendarClock,
   type LucideIcon,
 } from "lucide-react";
 
@@ -64,6 +66,8 @@ export const iconRegistry: Record<string, LucideIcon> = {
   graduation: GraduationCap,
   percent: Percent,
   calculator: Calculator,
+  dashboard: LayoutDashboard,
+  schedule: CalendarClock,
 };
 
 export function getIcon(name: string): LucideIcon {

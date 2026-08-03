@@ -33,6 +33,30 @@ export async function getReviewStats(): Promise<{ avg: number; count: number }> 
   return { avg: row?.avg ? Number(row.avg) : 0, count: row?.count ?? 0 };
 }
 
+/** Reviews left by clients for a specific executor (for the cleaner cabinet). */
+export async function getExecutorReviews(executorId: string, limit = 20): Promise<PublicReview[]> {
+  const rows = await query<{
+    id: string; rating: number; text: string | null; service: string | null;
+    created_at: string; name: string | null; phone: string;
+  }>(
+    `SELECT r.id, r.rating, r.text, r.service, r.created_at, u.name, u.phone
+       FROM reviews r JOIN users u ON u.id = r.user_id
+      WHERE r.executor_id = $1
+      ORDER BY r.created_at DESC
+      LIMIT $2`,
+    [executorId, limit]
+  );
+  return rows.map((r) => ({
+    id: r.id,
+    name: maskName(r.name),
+    initials: initials(r.name, r.phone).toUpperCase(),
+    rating: r.rating,
+    text: r.text,
+    service: r.service,
+    date: r.created_at,
+  }));
+}
+
 export async function getPublicReviews(limit = 12): Promise<PublicReview[]> {
   const rows = await query<{
     id: string; rating: number; text: string | null; service: string | null;

@@ -1,11 +1,34 @@
 /** Демо-данные личного кабинета (без реальной авторизации). */
 
-export const profileNav: { label: string; href: string; icon: string }[] = [
+export interface NavItem {
+  label: string;
+  href: string;
+  icon: string;
+}
+
+export const profileNav: NavItem[] = [
   { label: "Мои уборки", href: "/profile", icon: "sparkles" },
   { label: "Бонусы", href: "/profile/bonuses", icon: "star" },
   { label: "Оплата", href: "/profile/payment", icon: "card" },
   { label: "Настройки профиля", href: "/profile/settings", icon: "users" },
 ];
+
+const executorNav: NavItem[] = [
+  { label: "Кабинет клинера", href: "/profile", icon: "schedule" },
+  { label: "Настройки профиля", href: "/profile/settings", icon: "users" },
+];
+
+const staffNav: NavItem[] = [
+  { label: "Панель управления", href: "/admin", icon: "dashboard" },
+  { label: "Настройки профиля", href: "/profile/settings", icon: "users" },
+];
+
+/** Sidebar / dropdown items depend on the user's role. */
+export function navForRole(role?: string | null): NavItem[] {
+  if (role === "executor") return executorNav;
+  if (role === "admin" || role === "manager") return staffNav;
+  return profileNav;
+}
 
 export const demoUser = {
   name: "Гость",

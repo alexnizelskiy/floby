@@ -7,7 +7,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Menu, MapPin, X, ChevronRight, User, ChevronDown, LogOut } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { topNav, serviceTabs, secondaryNav } from "@/content/nav";
-import { profileNav } from "@/content/profile";
+import { navForRole } from "@/content/profile";
 import { getIcon } from "@/lib/icons";
 import { siteConfig } from "@/lib/site";
 import { cn } from "@/lib/utils";
@@ -204,7 +204,7 @@ function ProfileMenu({ user }: { user: AuthUser }) {
             transition={{ duration: 0.15 }}
             className="absolute right-0 top-[calc(100%+8px)] w-60 overflow-hidden rounded-2xl border border-border bg-background p-1.5 shadow-[var(--shadow-lg)]"
           >
-            {profileNav.map((item) => {
+            {navForRole(user.role).map((item) => {
               const Icon = getIcon(item.icon);
               return (
                 <Link
@@ -353,7 +353,7 @@ function MobileMenu({
                     </span>
                     <span className="truncate font-semibold">{user.name || "Профиль"}</span>
                   </div>
-                  {profileNav.map((item) => (
+                  {navForRole(user.role).map((item) => (
                     <Link
                       key={item.href}
                       href={item.href}

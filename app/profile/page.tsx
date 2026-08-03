@@ -8,30 +8,42 @@ import { getBalance } from "@/lib/bonus";
 
 export default async function ProfileHomePage() {
   const user = await getCurrentUser();
-  const balance = user ? await getBalance(user.id) : 0;
 
-  return (
-    <div className="flex flex-col gap-6">
-      {isStaff(user) && (
+  // ── Executor: dedicated cleaner cabinet (no client booking UI) ──
+  if (user?.role === "executor") {
+    return <ExecutorOrders />;
+  }
+
+  // ── Staff (manager/admin): point to the management panel ──
+  if (isStaff(user)) {
+    return (
+      <div className="flex flex-col gap-6">
         <Link
           href="/admin"
-          className="flex items-center justify-between rounded-2xl border border-brand-300 bg-brand-50 p-5 transition-colors hover:bg-brand-100"
+          className="flex items-center justify-between rounded-2xl border border-brand-300 bg-brand-50 p-6 transition-colors hover:bg-brand-100"
         >
           <span className="flex items-center gap-3">
-            <span className="grid size-10 place-items-center rounded-full bg-primary text-primary-foreground">
+            <span className="grid size-11 place-items-center rounded-full bg-primary text-primary-foreground">
               <LayoutDashboard className="size-5" />
             </span>
             <span>
               <span className="block font-semibold">Панель управления</span>
-              <span className="block text-sm text-muted-foreground">Заявки, исполнители, сотрудники</span>
+              <span className="block text-sm text-muted-foreground">Заявки, исполнители, аналитика</span>
             </span>
           </span>
           <ArrowRight className="size-5 text-primary" />
         </Link>
-      )}
+        <p className="text-sm text-muted-foreground">
+          Вы вошли как {user?.role === "admin" ? "администратор" : "менеджер"}. Управление заказами и сотрудниками — в панели.
+        </p>
+      </div>
+    );
+  }
 
-      {user?.role === "executor" && <ExecutorOrders />}
-
+  // ── Client cabinet ──
+  const balance = user ? await getBalance(user.id) : 0;
+  return (
+    <div className="flex flex-col gap-6">
       <MyCleanings />
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -68,9 +80,7 @@ export default async function ProfileHomePage() {
             </span>
             <h3 className="text-lg font-bold">Ваш баланс на уборки</h3>
           </div>
-          <p className="mt-4 text-4xl font-extrabold text-primary">
-            {formatPrice(balance)}
-          </p>
+          <p className="mt-4 text-4xl font-extrabold text-primary">{formatPrice(balance)}</p>
           <p className="mt-2 text-sm text-muted-foreground">
             Вы можете оплатить бонусами до 15% стоимости уборки.
           </p>
