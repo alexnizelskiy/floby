@@ -44,5 +44,8 @@ next-env.d.ts
 .pglite/
 .env*.local
 
+# dev-only uploaded images (prod uses Vercel Blob)
+/public/uploads/
+
 # keep the env template
 !.env.example

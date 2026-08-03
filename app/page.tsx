@@ -6,6 +6,7 @@ import { CleaningChecklist } from "@/components/sections/cleaning-checklist";
 import { NotIncluded } from "@/components/sections/not-included";
 import { HowItWorks } from "@/components/sections/how-it-works";
 import { CleanersTrust } from "@/components/sections/cleaners-trust";
+import { BeforeAfter } from "@/components/sections/before-after";
 import { CalculatorSection } from "@/components/sections/calculator-section";
 import { ReviewsSlider } from "@/components/sections/reviews-slider";
 import { FaqSection } from "@/components/sections/faq-section";
@@ -39,6 +40,7 @@ export default function HomePage() {
       <NotIncluded />
       <HowItWorks />
       <CleanersTrust />
+      <BeforeAfter />
       <CalculatorSection />
       <ReviewsSlider />
       <FaqSection items={homeFaq} />

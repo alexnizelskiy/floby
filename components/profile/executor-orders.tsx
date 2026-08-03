@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { MapPin, Phone, User, Loader2, Wallet, CheckCircle2, Star } from "lucide-react";
+import { MapPin, Phone, User, Wallet, CheckCircle2, Star, Camera, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatPrice, cn } from "@/lib/utils";
 import { formatDateCard, endTime, estimateDurationHours, optionMap, type Booking } from "@/lib/booking";
@@ -155,15 +155,101 @@ export function ExecutorOrders() {
                 )}
                 {o.status === "done" && (
                   <span className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-700">
-                    <Loader2 className="size-4" /> Заказ выполнен
+                    <CheckCircle2 className="size-4" /> Заказ выполнен
                   </span>
                 )}
               </div>
+
+              {(o.status === "in_progress" || o.status === "done") && (
+                <OrderPhotoUpload bookingId={o.id} />
+              )}
             </div>
           );
         })}
       </div>
       )}
     </section>
+  );
+}
+
+const UPLOAD_ERR: Record<string, string> = {
+  missing_files: "Добавьте оба фото — «до» и «после»",
+  unsupported_type: "Только JPG, PNG или WebP",
+  too_large: "Файл больше 8 МБ",
+  storage_unavailable: "Загрузка фото пока недоступна",
+};
+
+/** Executor uploads a before/after pair tied to this order (goes to moderation). */
+function OrderPhotoUpload({ bookingId }: { bookingId: string }) {
+  const [open, setOpen] = React.useState(false);
+  const [busy, setBusy] = React.useState(false);
+  const [done, setDone] = React.useState(false);
+  const [err, setErr] = React.useState("");
+  const beforeRef = React.useRef<HTMLInputElement>(null);
+  const afterRef = React.useRef<HTMLInputElement>(null);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setErr("");
+    const before = beforeRef.current?.files?.[0];
+    const after = afterRef.current?.files?.[0];
+    if (!before || !after) {
+      setErr(UPLOAD_ERR.missing_files);
+      return;
+    }
+    const fd = new FormData();
+    fd.append("before", before);
+    fd.append("after", after);
+    fd.append("bookingId", bookingId);
+    setBusy(true);
+    const r = await fetch("/api/gallery", { method: "POST", body: fd })
+      .then((x) => x.json())
+      .catch(() => ({ ok: false, error: "upload_failed" }));
+    setBusy(false);
+    if (r.ok) setDone(true);
+    else setErr(UPLOAD_ERR[r.error] ?? "Не удалось загрузить");
+  }
+
+  if (done) {
+    return (
+      <p className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-brand-700">
+        <Check className="size-4" /> Фото отправлены на модерацию
+      </p>
+    );
+  }
+
+  if (!open) {
+    return (
+      <button
+        onClick={() => setOpen(true)}
+        className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+      >
+        <Camera className="size-4" /> Добавить фото до/после
+      </button>
+    );
+  }
+
+  return (
+    <form onSubmit={submit} className="mt-3 rounded-xl border border-dashed border-border bg-surface p-4">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <label className="text-sm">
+          <span className="mb-1 block text-muted-foreground">Фото «до»</span>
+          <input ref={beforeRef} type="file" accept="image/jpeg,image/png,image/webp" className="block w-full text-sm" />
+        </label>
+        <label className="text-sm">
+          <span className="mb-1 block text-muted-foreground">Фото «после»</span>
+          <input ref={afterRef} type="file" accept="image/jpeg,image/png,image/webp" className="block w-full text-sm" />
+        </label>
+      </div>
+      {err && <p className="mt-2 text-sm text-destructive">{err}</p>}
+      <div className="mt-3 flex gap-2">
+        <Button size="sm" type="submit" disabled={busy}>
+          {busy ? "Загрузка…" : "Отправить"}
+        </Button>
+        <Button size="sm" variant="ghost" type="button" onClick={() => setOpen(false)}>
+          Отмена
+        </Button>
+      </div>
+    </form>
   );
 }

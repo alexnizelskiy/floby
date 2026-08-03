@@ -5,6 +5,7 @@ import { MapPin, Phone, Search, User, CreditCard, Banknote, TrendingUp, Repeat, 
 import { formatPrice, cn } from "@/lib/utils";
 import { formatDateCard, optionMap } from "@/lib/booking";
 import type { Role } from "@/lib/auth";
+import { GalleryManager } from "@/components/admin/gallery-manager";
 
 interface Analytics {
   revenue: { today: number; week: number; month: number; total: number };
@@ -59,7 +60,7 @@ interface Promo {
 }
 
 export function AdminPanel({ role }: { role: Role }) {
-  const [tab, setTab] = React.useState<"analytics" | "bookings" | "users" | "promos">("analytics");
+  const [tab, setTab] = React.useState<"analytics" | "bookings" | "users" | "promos" | "gallery">("analytics");
   const [bookings, setBookings] = React.useState<AdminBooking[]>([]);
   const [users, setUsers] = React.useState<AdminUser[]>([]);
   const [promos, setPromos] = React.useState<Promo[]>([]);
@@ -166,6 +167,7 @@ export function AdminPanel({ role }: { role: Role }) {
               ["bookings", `Заявки (${bookings.length})`],
               ["users", `Пользователи (${users.length})`],
               ["promos", `Промокоды (${promos.length})`],
+              ["gallery", "Галерея"],
             ] as const
           ).map(([id, label]) => (
             <button
@@ -472,6 +474,9 @@ export function AdminPanel({ role }: { role: Role }) {
             </div>
           </div>
         )}
+
+        {/* ── Gallery ── */}
+        {tab === "gallery" && <GalleryManager />}
       </div>
     </div>
   );

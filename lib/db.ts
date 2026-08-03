@@ -89,6 +89,17 @@ CREATE TABLE IF NOT EXISTS promo_codes (
   expires_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+CREATE TABLE IF NOT EXISTS gallery (
+  id TEXT PRIMARY KEY,
+  booking_id TEXT REFERENCES bookings(id) ON DELETE SET NULL,
+  before_url TEXT NOT NULL,
+  after_url TEXT NOT NULL,
+  title TEXT,
+  cleaning_type TEXT,
+  published BOOLEAN NOT NULL DEFAULT false,
+  created_by TEXT REFERENCES users(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
 -- idempotent migrations for existing databases
 ALTER TABLE users ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'client';
 ALTER TABLE users ADD COLUMN IF NOT EXISTS bonus_balance INT NOT NULL DEFAULT 0;
