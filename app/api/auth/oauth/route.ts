@@ -48,9 +48,6 @@ export async function POST(request: Request) {
     });
   } catch (e) {
     console.error("OAuth login error:", e);
-    return NextResponse.json(
-      { ok: false, error: "server_error", detail: e instanceof Error ? e.message : String(e) },
-      { status: 500 }
-    );
+    return NextResponse.json({ ok: false, error: "server_error" }, { status: 500 });
   }
 }
