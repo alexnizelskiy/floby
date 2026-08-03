@@ -24,6 +24,14 @@ function adminPhones(): string[] {
     .filter((p): p is string => !!p);
 }
 
+/** Emails that are auto-promoted to admin on OAuth login (comma-separated env). */
+function adminEmails(): string[] {
+  return (process.env.ADMIN_EMAILS ?? "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+}
+
 export function isStaff(user: User | null): boolean {
   return user?.role === "admin" || user?.role === "manager";
 }
@@ -127,6 +135,14 @@ export async function upsertUserByPhone(phone: string): Promise<User> {
   return { id, phone, name: null, email: null, role, avatar: null };
 }
 
+/** Promote a user to admin if their email is in ADMIN_EMAILS. Returns true if promoted. */
+async function promoteIfAdminEmail(userId: string, email: string | null): Promise<boolean> {
+  const e = (email ?? "").trim().toLowerCase();
+  if (!e || !adminEmails().includes(e)) return false;
+  await query("UPDATE users SET role = 'admin' WHERE id = $1 AND role <> 'admin'", [userId]);
+  return true;
+}
+
 export type OAuthProvider = "vk" | "yandex";
 
 /**
@@ -151,8 +167,9 @@ export async function upsertUserByOAuth(input: {
     if (avatarUrl) {
       await query("UPDATE users SET avatar_url = $1 WHERE id = $2 AND avatar_url IS NULL", [avatarUrl, link.user_id]);
     }
-    const row = await queryOne<UserRow>(`SELECT ${USER_COLUMNS} FROM users WHERE id = $1`, [link.user_id]);
-    return { user: rowToUser(row as UserRow), isNew: false };
+    const row = (await queryOne<UserRow>(`SELECT ${USER_COLUMNS} FROM users WHERE id = $1`, [link.user_id])) as UserRow;
+    if (await promoteIfAdminEmail(link.user_id, row.email ?? email)) row.role = "admin";
+    return { user: rowToUser(row), isNew: false };
   }
 
   // 2. Same email → attach provider to that account.
@@ -181,6 +198,7 @@ export async function upsertUserByOAuth(input: {
     [newId(), userId, provider, providerId]
   );
 
-  const row = await queryOne<UserRow>(`SELECT ${USER_COLUMNS} FROM users WHERE id = $1`, [userId]);
-  return { user: rowToUser(row as UserRow), isNew };
+  const row = (await queryOne<UserRow>(`SELECT ${USER_COLUMNS} FROM users WHERE id = $1`, [userId])) as UserRow;
+  if (await promoteIfAdminEmail(userId, row.email ?? email)) row.role = "admin";
+  return { user: rowToUser(row), isNew };
 }
