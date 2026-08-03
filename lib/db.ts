@@ -89,6 +89,14 @@ CREATE TABLE IF NOT EXISTS promo_codes (
   expires_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+CREATE TABLE IF NOT EXISTS user_oauth_providers (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  provider TEXT NOT NULL,
+  provider_id TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (provider, provider_id)
+);
 CREATE TABLE IF NOT EXISTS gallery (
   id TEXT PRIMARY KEY,
   booking_id TEXT REFERENCES bookings(id) ON DELETE SET NULL,
@@ -113,6 +121,9 @@ ALTER TABLE bookings ADD COLUMN IF NOT EXISTS promo_code TEXT;
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS promo_discount INT NOT NULL DEFAULT 0;
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS recurring_spawned BOOLEAN NOT NULL DEFAULT false;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS preferred_executor_id TEXT REFERENCES users(id) ON DELETE SET NULL;
+-- OAuth (VK / Яндекс): пользователи входят без телефона, с аватаром провайдера
+ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT;
+ALTER TABLE users ALTER COLUMN phone DROP NOT NULL;
 -- welcome promo for new clients (idempotent)
 INSERT INTO promo_codes (id, code, discount_type, value, active, min_order) VALUES ('seed-clean15', 'CLEAN15', 'percent', 15, true, 0) ON CONFLICT (code) DO NOTHING;
 `;

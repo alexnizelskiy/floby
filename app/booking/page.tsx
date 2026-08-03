@@ -6,6 +6,7 @@ import Link from "next/link";
 import { CheckCircle2, Zap, CreditCard, ChevronDown, ShieldCheck, Repeat } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SmsAuthModal } from "@/features/booking/sms-auth-modal";
+import { OAuthButtons } from "@/components/auth/oauth-buttons";
 import { CalculatorControls } from "@/features/calculator/calculator-controls";
 import { formatPrice, cn } from "@/lib/utils";
 import { activeCities } from "@/content/cities";
@@ -271,6 +272,10 @@ export default function BookingPage() {
               />
               {phoneError && <p className="text-sm text-destructive">Введите корректный номер</p>}
               <Button size="lg" onClick={startAuth}>Получить код</Button>
+            </div>
+
+            <div className="mt-5">
+              <OAuthButtons onSuccess={() => setAuthed(true)} />
             </div>
           </div>
         </div>

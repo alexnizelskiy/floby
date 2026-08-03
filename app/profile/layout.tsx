@@ -40,7 +40,9 @@ export default async function ProfileLayout({
           </span>
           <div>
             <h1 className="text-2xl font-bold">{user.name || "Личный кабинет"}</h1>
-            <p className="text-sm text-muted-foreground">{formatPhone(user.phone)}</p>
+            <p className="text-sm text-muted-foreground">
+              {user.phone ? formatPhone(user.phone) : user.email ?? "—"}
+            </p>
           </div>
         </div>
 

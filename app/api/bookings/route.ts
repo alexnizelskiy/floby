@@ -100,7 +100,7 @@ export async function POST(request: Request) {
   if (bonusUsed > 0) await creditBonus(user.id, -bonusUsed, "Оплата бонусами", id);
   if (promoCode) await consumePromo(promoCode);
 
-  await notifyOwnerNewBooking(body.data, user.phone, payable).catch(() => {});
+  await notifyOwnerNewBooking(body.data, user.phone ?? "—", payable).catch(() => {});
 
   return NextResponse.json({ ok: true, id });
 }

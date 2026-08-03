@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SmsAuthModal } from "@/features/booking/sms-auth-modal";
+import { OAuthButtons } from "@/components/auth/oauth-buttons";
 
 /** Login gate for the cabinet: phone → SMS code → session. */
 export function ProfileLogin() {
@@ -58,6 +59,8 @@ export function ProfileLogin() {
             Получить код
           </Button>
         </form>
+
+        <OAuthButtons onSuccess={() => router.refresh()} />
       </div>
 
       <SmsAuthModal
