@@ -58,13 +58,26 @@ interface Promo {
   id: string; code: string; discount_type: "percent" | "fixed"; value: number;
   active: boolean; max_uses: number; used_count: number; min_order: number; expires_at: string | null;
 }
+interface AdminReview {
+  id: string; rating: number; text: string | null; service: string | null;
+  created_at: string; client_name: string | null; executor_name: string | null;
+}
+interface Payout {
+  id: string; name: string | null; phone: string | null;
+  done: number; active: number; gross: number; payout: number; rating: number;
+}
 
 export function AdminPanel({ role }: { role: Role }) {
-  const [tab, setTab] = React.useState<"analytics" | "bookings" | "users" | "promos" | "gallery">("analytics");
+  const isAdminRole = role === "admin";
+  const [tab, setTab] = React.useState<
+    "analytics" | "bookings" | "users" | "promos" | "gallery" | "reviews" | "payouts"
+  >(isAdminRole ? "analytics" : "bookings");
   const [bookings, setBookings] = React.useState<AdminBooking[]>([]);
   const [users, setUsers] = React.useState<AdminUser[]>([]);
   const [promos, setPromos] = React.useState<Promo[]>([]);
   const [analytics, setAnalytics] = React.useState<Analytics | null>(null);
+  const [reviews, setReviews] = React.useState<AdminReview[]>([]);
+  const [payouts, setPayouts] = React.useState<Payout[]>([]);
   const [q, setQ] = React.useState("");
   const [newPromo, setNewPromo] = React.useState({ code: "", discountType: "percent", value: "", maxUses: "", minOrder: "" });
   const [promoErr, setPromoErr] = React.useState("");
@@ -86,13 +99,25 @@ export function AdminPanel({ role }: { role: Role }) {
     const r = await fetch("/api/admin/analytics").then((x) => x.json()).catch(() => null);
     if (r?.ok) setAnalytics(r.analytics);
   }, []);
+  const loadReviews = React.useCallback(async () => {
+    const r = await fetch("/api/admin/reviews").then((x) => x.json()).catch(() => null);
+    if (r?.ok) setReviews(r.reviews);
+  }, []);
+  const loadPayouts = React.useCallback(async () => {
+    const r = await fetch("/api/admin/payouts").then((x) => x.json()).catch(() => null);
+    if (r?.ok) setPayouts(r.payouts);
+  }, []);
 
   React.useEffect(() => {
-    loadAnalytics();
     loadBookings();
     loadUsers();
     loadPromos();
-  }, [loadAnalytics, loadBookings, loadUsers, loadPromos]);
+    loadReviews();
+    if (isAdminRole) {
+      loadAnalytics();
+      loadPayouts();
+    }
+  }, [loadAnalytics, loadBookings, loadUsers, loadPromos, loadReviews, loadPayouts, isAdminRole]);
 
   async function createPromo() {
     setPromoErr("");
@@ -160,15 +185,17 @@ export function AdminPanel({ role }: { role: Role }) {
           {role === "admin" ? "Администратор" : "Менеджер"} · заявки и сотрудники
         </p>
 
-        <div className="mt-6 flex gap-2">
+        <div className="mt-6 flex flex-wrap gap-2">
           {(
             [
-              ["analytics", "Аналитика"],
+              ...(isAdminRole ? ([["analytics", "Аналитика"]] as const) : []),
               ["bookings", `Заявки (${bookings.length})`],
               ["users", `Пользователи (${users.length})`],
+              ["reviews", "Отзывы"],
               ["promos", `Промокоды (${promos.length})`],
               ["gallery", "Галерея"],
-            ] as const
+              ...(isAdminRole ? ([["payouts", "Выплаты"]] as const) : []),
+            ] as [typeof tab, string][]
           ).map(([id, label]) => (
             <button
               key={id}
@@ -386,13 +413,15 @@ export function AdminPanel({ role }: { role: Role }) {
                       <td className="px-4 py-3 text-muted-foreground">{u.email || "—"}</td>
                       <td className="px-4 py-3">{u.orders}</td>
                       <td className="px-4 py-3">
-                        {u.role === "admin" ? (
-                          <span className="rounded-full bg-brand-100 px-2.5 py-1 text-xs font-semibold text-brand-700">Админ</span>
+                        {!isAdminRole || u.role === "admin" ? (
+                          <span className="rounded-full bg-surface-strong px-2.5 py-1 text-xs font-semibold text-foreground">
+                            {ROLE_LABEL[u.role] ?? u.role}
+                          </span>
                         ) : (
                           <select className={selectCls} value={u.role} onChange={(e) => setRole(u.id, e.target.value)}>
                             <option value="client">Клиент</option>
                             <option value="executor">Исполнитель</option>
-                            {role === "admin" && <option value="manager">Менеджер</option>}
+                            <option value="manager">Менеджер</option>
                           </select>
                         )}
                       </td>
@@ -477,6 +506,81 @@ export function AdminPanel({ role }: { role: Role }) {
 
         {/* ── Gallery ── */}
         {tab === "gallery" && <GalleryManager />}
+
+        {/* ── Reviews / quality ── */}
+        {tab === "reviews" && (
+          <div className="mt-6 flex flex-col gap-3">
+            {reviews.length === 0 ? (
+              <p className="rounded-2xl border border-dashed border-border bg-card p-8 text-center text-muted-foreground">
+                Отзывов пока нет.
+              </p>
+            ) : (
+              reviews.map((r) => (
+                <div
+                  key={r.id}
+                  className={cn(
+                    "rounded-2xl border bg-card p-5",
+                    r.rating <= 3 ? "border-destructive/40" : "border-border"
+                  )}
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="inline-flex items-center gap-0.5">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star key={i} className={cn("size-4", i < r.rating ? "fill-warning text-warning" : "text-border")} />
+                      ))}
+                      {r.rating <= 3 && (
+                        <span className="ml-2 rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-semibold text-destructive">
+                          Низкая оценка
+                        </span>
+                      )}
+                    </span>
+                    <span className="text-sm text-muted-foreground">{formatDateCard(r.created_at.slice(0, 10))}</span>
+                  </div>
+                  {r.text && <p className="mt-2 text-sm text-foreground">{r.text}</p>}
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    {r.service ?? "Уборка"} · Клиент: {r.client_name || "—"} · Клинер: {r.executor_name || "не назначен"}
+                  </p>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {/* ── Executor payouts (admin) ── */}
+        {tab === "payouts" && isAdminRole && (
+          <div className="mt-6 overflow-x-auto rounded-2xl border border-border bg-card">
+            <table className="w-full min-w-[640px] text-sm">
+              <thead>
+                <tr className="border-b border-border text-left text-muted-foreground">
+                  <th className="px-4 py-3 font-medium">Клинер</th>
+                  <th className="px-4 py-3 font-medium">Выполнено</th>
+                  <th className="px-4 py-3 font-medium">В работе</th>
+                  <th className="px-4 py-3 font-medium">Сумма заказов</th>
+                  <th className="px-4 py-3 font-medium">К выплате</th>
+                  <th className="px-4 py-3 font-medium">Рейтинг</th>
+                </tr>
+              </thead>
+              <tbody>
+                {payouts.map((p) => (
+                  <tr key={p.id} className="border-b border-border last:border-0">
+                    <td className="px-4 py-3">
+                      <span className="font-medium">{p.name || "Клинер"}</span>
+                      {p.phone && <span className="block text-xs text-muted-foreground">{p.phone}</span>}
+                    </td>
+                    <td className="px-4 py-3">{p.done}</td>
+                    <td className="px-4 py-3">{p.active}</td>
+                    <td className="px-4 py-3">{formatPrice(p.gross)}</td>
+                    <td className="px-4 py-3 font-semibold text-primary">{formatPrice(p.payout)}</td>
+                    <td className="px-4 py-3">{p.rating > 0 ? p.rating.toFixed(1) : "—"}</td>
+                  </tr>
+                ))}
+                {payouts.length === 0 && (
+                  <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">Пока нет исполнителей.</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );
