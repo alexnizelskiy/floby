@@ -7,6 +7,7 @@ import { CheckCircle2, Zap, CreditCard, ChevronDown, ShieldCheck, Repeat } from 
 import { Button } from "@/components/ui/button";
 import { SmsAuthModal } from "@/features/booking/sms-auth-modal";
 import { OAuthButtons } from "@/components/auth/oauth-buttons";
+import { useAuth } from "@/components/auth/auth-provider";
 import { CalculatorControls } from "@/features/calculator/calculator-controls";
 import { formatPrice, cn } from "@/lib/utils";
 import { activeCities } from "@/content/cities";
@@ -59,6 +60,7 @@ function Select({ value, onChange, children }: { value: string; onChange: (v: st
 
 export default function BookingPage() {
   const router = useRouter();
+  const { refresh: refreshAuth } = useAuth();
 
   // auth
   const [authChecked, setAuthChecked] = React.useState(false);
@@ -275,7 +277,7 @@ export default function BookingPage() {
             </div>
 
             <div className="mt-5">
-              <OAuthButtons onSuccess={() => setAuthed(true)} />
+              <OAuthButtons onSuccess={() => { setAuthed(true); refreshAuth(); }} />
             </div>
           </div>
         </div>
@@ -284,7 +286,7 @@ export default function BookingPage() {
           open={smsOpen}
           phone={phone}
           onClose={() => setSmsOpen(false)}
-          onVerified={() => { setSmsOpen(false); setAuthed(true); }}
+          onVerified={() => { setSmsOpen(false); setAuthed(true); refreshAuth(); }}
         />
       </div>
     );

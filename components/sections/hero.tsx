@@ -7,6 +7,8 @@ import { useRouter } from "next/navigation";
 import { Minus, Plus } from "lucide-react";
 import { plural, cn } from "@/lib/utils";
 import { saveCalcDraft, defaultCalcState } from "@/lib/calc";
+import { useAuth } from "@/components/auth/auth-provider";
+import { OAuthButtons } from "@/components/auth/oauth-buttons";
 
 /** Rounded stepper pill: − [label] + */
 function Stepper({
@@ -49,26 +51,38 @@ function Stepper({
 
 function HeroForm() {
   const router = useRouter();
+  const { user, loading, refresh } = useAuth();
   const [rooms, setRooms] = React.useState(1);
   const [baths, setBaths] = React.useState(1);
   const [phone, setPhone] = React.useState("");
   const [error, setError] = React.useState(false);
 
+  const authed = !!user;
+
+  function goToBooking() {
+    // санузлы сверх одного переносим в доп.услугу «Уборка санузла»
+    const addons: Record<string, number> = baths > 1 ? { bathroom: baths - 1 } : {};
+    saveCalcDraft({ ...defaultCalcState, rooms, addons, ...(authed ? {} : { phone }) });
+    router.push("/booking");
+  }
+
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (phone.replace(/\D/g, "").length < 10) {
+    if (!authed && phone.replace(/\D/g, "").length < 10) {
       setError(true);
       return;
     }
-    // санузлы сверх одного переносим в доп.услугу «Уборка санузла»
-    const addons: Record<string, number> = baths > 1 ? { bathroom: baths - 1 } : {};
-    saveCalcDraft({ ...defaultCalcState, rooms, addons, phone });
-    router.push("/booking");
+    goToBooking();
   }
 
   return (
     <form onSubmit={onSubmit} className="w-full max-w-[1120px]">
-      <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
+      <div
+        className={cn(
+          "grid grid-cols-1 gap-2.5 sm:grid-cols-2",
+          authed ? "lg:grid-cols-3" : "lg:grid-cols-4"
+        )}
+      >
         <Stepper label={`${rooms}-комнатная`} value={rooms} onChange={setRooms} max={6} />
         <Stepper
           label={`${baths} ${plural(baths, ["санузел", "санузла", "санузлов"])}`}
@@ -76,21 +90,23 @@ function HeroForm() {
           onChange={setBaths}
           max={4}
         />
-        <input
-          type="tel"
-          inputMode="tel"
-          placeholder="+7 (___) ___-__-__"
-          value={phone}
-          onChange={(e) => {
-            setPhone(e.target.value);
-            if (error) setError(false);
-          }}
-          aria-invalid={error}
-          className={cn(
-            "h-[52px] rounded-full border bg-white px-5 text-base text-foreground placeholder:text-muted-foreground focus-visible:border-brand-400 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring",
-            error ? "border-destructive" : "border-border"
-          )}
-        />
+        {!authed && (
+          <input
+            type="tel"
+            inputMode="tel"
+            placeholder="+7 (___) ___-__-__"
+            value={phone}
+            onChange={(e) => {
+              setPhone(e.target.value);
+              if (error) setError(false);
+            }}
+            aria-invalid={error}
+            className={cn(
+              "h-[52px] rounded-full border bg-white px-5 text-base text-foreground placeholder:text-muted-foreground focus-visible:border-brand-400 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring",
+              error ? "border-destructive" : "border-border"
+            )}
+          />
+        )}
         <button
           type="submit"
           className="flex h-[52px] items-center justify-center gap-2 rounded-full bg-brand-500 px-6 text-base font-medium text-white transition-colors hover:bg-brand-600"
@@ -99,17 +115,25 @@ function HeroForm() {
         </button>
       </div>
 
-      <p className="mt-4 text-center text-sm text-muted-foreground">
-        Нажимая «Рассчитать стоимость», я даю согласие на{" "}
-        <Link href="/privacy" className="underline underline-offset-2 hover:text-foreground">
-          обработку персональных данных
-        </Link>{" "}
-        и соглашаюсь с{" "}
-        <Link href="/help" className="underline underline-offset-2 hover:text-foreground">
-          условиями Сервиса
-        </Link>
-        .
-      </p>
+      {!authed && !loading && (
+        <div className="mx-auto mt-3 max-w-sm">
+          <OAuthButtons onSuccess={refresh} />
+        </div>
+      )}
+
+      {!authed && (
+        <p className="mt-4 text-center text-sm text-muted-foreground">
+          Нажимая «Рассчитать стоимость», я даю согласие на{" "}
+          <Link href="/privacy" className="underline underline-offset-2 hover:text-foreground">
+            обработку персональных данных
+          </Link>{" "}
+          и соглашаюсь с{" "}
+          <Link href="/help" className="underline underline-offset-2 hover:text-foreground">
+            условиями Сервиса
+          </Link>
+          .
+        </p>
+      )}
     </form>
   );
 }

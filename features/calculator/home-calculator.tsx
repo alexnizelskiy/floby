@@ -15,6 +15,7 @@ import {
   type CalcState,
 } from "@/lib/calc";
 import { generateDates, generateTimes, formatDateLong } from "@/lib/booking";
+import { useAuth } from "@/components/auth/auth-provider";
 
 const dates = generateDates(14);
 const times = generateTimes();
@@ -24,6 +25,7 @@ const fieldCls =
 
 export function HomeCalculator() {
   const router = useRouter();
+  const { user } = useAuth();
   const [state, setState] = React.useState<CalcState>(defaultCalcState);
   const [name, setName] = React.useState("");
   const [phone, setPhone] = React.useState("");
@@ -46,6 +48,13 @@ export function HomeCalculator() {
       if (d.comment) setComment(d.comment);
     }
   }, []);
+
+  // Prefill contact fields from the profile once the user is known.
+  React.useEffect(() => {
+    if (!user) return;
+    if (user.name) setName((prev) => prev || user.name!);
+    if (user.phone) setPhone((prev) => prev || user.phone!);
+  }, [user]);
 
   const result = React.useMemo(() => computeCalc(state), [state]);
 

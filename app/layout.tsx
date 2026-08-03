@@ -9,6 +9,7 @@ import { ThemeScript } from "@/components/theme/theme-toggle";
 import { JsonLd } from "@/components/seo/json-ld";
 import { RefCapture } from "@/components/referral/ref-capture";
 import { RegisterSW } from "@/components/pwa/register-sw";
+import { AuthProvider } from "@/components/auth/auth-provider";
 import { localBusinessJsonLd, websiteJsonLd } from "@/lib/jsonld";
 import { defaultMetadata } from "@/lib/seo";
 import { siteConfig } from "@/lib/site";
@@ -64,10 +65,12 @@ export default function RootLayout({
         <JsonLd data={[localBusinessJsonLd(), websiteJsonLd()]} />
         <RefCapture />
         <RegisterSW />
-        <PromoBanner />
-        <Header />
-        <main className="flex-1">{children}</main>
-        <Footer />
+        <AuthProvider>
+          <PromoBanner />
+          <Header />
+          <main className="flex-1">{children}</main>
+          <Footer />
+        </AuthProvider>
       </body>
     </html>
   );

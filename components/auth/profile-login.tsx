@@ -8,10 +8,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SmsAuthModal } from "@/features/booking/sms-auth-modal";
 import { OAuthButtons } from "@/components/auth/oauth-buttons";
+import { useAuth } from "@/components/auth/auth-provider";
 
 /** Login gate for the cabinet: phone → SMS code → session. */
 export function ProfileLogin() {
   const router = useRouter();
+  const { refresh } = useAuth();
   const [phone, setPhone] = React.useState("");
   const [error, setError] = React.useState(false);
   const [smsOpen, setSmsOpen] = React.useState(false);
@@ -60,7 +62,7 @@ export function ProfileLogin() {
           </Button>
         </form>
 
-        <OAuthButtons onSuccess={() => router.refresh()} />
+        <OAuthButtons onSuccess={() => { refresh(); router.refresh(); }} />
       </div>
 
       <SmsAuthModal
@@ -69,6 +71,7 @@ export function ProfileLogin() {
         onClose={() => setSmsOpen(false)}
         onVerified={() => {
           setSmsOpen(false);
+          refresh();
           router.refresh();
         }}
       />
