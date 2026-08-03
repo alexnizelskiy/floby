@@ -84,6 +84,9 @@ export default function BookingPage() {
   const [comment, setComment] = React.useState("");
   const [streetError, setStreetError] = React.useState(false);
   const [phoneError, setPhoneError] = React.useState(false);
+  // social-login users have no phone yet — collect one at checkout
+  const [needsPhone, setNeedsPhone] = React.useState(false);
+  const [contactErr, setContactErr] = React.useState<string | null>(null);
 
   // promo + bonus
   const [promoInput, setPromoInput] = React.useState("");
@@ -112,6 +115,7 @@ export default function BookingPage() {
           setAuthed(true);
           if (data.user.name) setName((n) => n || data.user.name);
           if (data.user.phone) setPhone((p) => p || data.user.phone);
+          else setNeedsPhone(true);
         }
       })
       .finally(() => setAuthChecked(true));
@@ -178,12 +182,41 @@ export default function BookingPage() {
   }
 
   async function finish() {
+    if (needsPhone && phone.replace(/\D/g, "").length < 10) {
+      setContactErr("Введите корректный номер");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
     if (!street.trim()) {
       setStreetError(true);
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
     setSaving(true);
+
+    // Social-login users: persist the contact phone to their profile first,
+    // so notifications and future bookings have it.
+    if (needsPhone) {
+      const pr = await fetch("/api/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone }),
+      })
+        .then((r) => r.json())
+        .catch(() => ({ ok: false }));
+      if (!pr.ok) {
+        setSaving(false);
+        setContactErr(
+          pr.error === "phone_taken"
+            ? "Этот номер уже привязан к другому аккаунту. Войдите по номеру телефона."
+            : "Не удалось сохранить номер. Попробуйте ещё раз."
+        );
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
+      setNeedsPhone(false);
+      refreshAuth();
+    }
     const baths = 1 + (state.addons.bathroom ?? 0);
     const price = {
       base: result.base,
@@ -311,6 +344,25 @@ export default function BookingPage() {
         <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
           {/* Left: calculator + address */}
           <div className="flex flex-col gap-6">
+            {needsPhone && (
+              <div className="rounded-3xl border border-brand-200 bg-brand-50/40 p-5 md:p-7">
+                <h2 className="text-xl font-bold">Контактный телефон</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Вы вошли через соцсеть — оставьте номер, чтобы клинер мог связаться с вами. Мы сохраним его в профиле.
+                </p>
+                <input
+                  type="tel"
+                  inputMode="tel"
+                  value={phone}
+                  onChange={(e) => { setPhone(e.target.value); setContactErr(null); }}
+                  placeholder="+7 (___) ___-__-__"
+                  aria-invalid={!!contactErr}
+                  className={cn(inputCls, "mt-4", contactErr && "border-destructive")}
+                />
+                {contactErr && <p className="mt-2 text-sm text-destructive">{contactErr}</p>}
+              </div>
+            )}
+
             <div className="rounded-3xl border border-border bg-card p-5 md:p-7">
               <CalculatorControls state={state} onChange={setState} />
             </div>
