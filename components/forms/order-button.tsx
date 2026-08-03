@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Button, type ButtonProps } from "@/components/ui/button";
+import { useRoleFlags } from "@/components/auth/auth-provider";
 import {
   getCalcDraft,
   saveCalcDraft,
@@ -29,8 +30,14 @@ interface OrderButtonProps extends ButtonProps {
  */
 export function OrderButton({ label = "Заказать уборку", defaultService, children, ...buttonProps }: OrderButtonProps) {
   const router = useRouter();
+  const { canOrder, dashboardPath } = useRoleFlags();
 
   function go() {
+    // Staff / executors can't order — send them to their work panel instead.
+    if (!canOrder) {
+      if (dashboardPath) router.push(dashboardPath);
+      return;
+    }
     const type = defaultService ? SERVICE_TO_TYPE[defaultService] : undefined;
     const existing = getCalcDraft();
     if (!existing && type) {
@@ -43,7 +50,7 @@ export function OrderButton({ label = "Заказать уборку", defaultSe
 
   return (
     <Button onClick={go} {...buttonProps}>
-      {children ?? label}
+      {!canOrder ? "Перейти в панель" : children ?? label}
     </Button>
   );
 }

@@ -7,8 +7,9 @@ import { useRouter } from "next/navigation";
 import { Minus, Plus } from "lucide-react";
 import { plural, cn } from "@/lib/utils";
 import { saveCalcDraft, defaultCalcState } from "@/lib/calc";
-import { useAuth } from "@/components/auth/auth-provider";
+import { useAuth, useRoleFlags } from "@/components/auth/auth-provider";
 import { OAuthButtons } from "@/components/auth/oauth-buttons";
+import { StaffPanelCard } from "@/components/auth/staff-panel-card";
 
 /** Rounded stepper pill: − [label] + */
 function Stepper({
@@ -52,12 +53,22 @@ function Stepper({
 function HeroForm() {
   const router = useRouter();
   const { user, loading, refresh } = useAuth();
+  const { canOrder } = useRoleFlags();
   const [rooms, setRooms] = React.useState(1);
   const [baths, setBaths] = React.useState(1);
   const [phone, setPhone] = React.useState("");
   const [error, setError] = React.useState(false);
 
   const authed = !!user;
+
+  // Staff / executors don't order cleanings — show a link to their panel.
+  if (!canOrder) {
+    return (
+      <div className="w-full max-w-md">
+        <StaffPanelCard />
+      </div>
+    );
+  }
 
   function goToBooking() {
     // санузлы сверх одного переносим в доп.услугу «Уборка санузла»

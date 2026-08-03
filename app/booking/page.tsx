@@ -7,7 +7,7 @@ import { CheckCircle2, Zap, CreditCard, ChevronDown, ShieldCheck, Repeat } from 
 import { Button } from "@/components/ui/button";
 import { SmsAuthModal } from "@/features/booking/sms-auth-modal";
 import { OAuthButtons } from "@/components/auth/oauth-buttons";
-import { useAuth } from "@/components/auth/auth-provider";
+import { useAuth, useRoleFlags } from "@/components/auth/auth-provider";
 import { CalculatorControls } from "@/features/calculator/calculator-controls";
 import { formatPrice, cn } from "@/lib/utils";
 import { activeCities } from "@/content/cities";
@@ -61,6 +61,12 @@ function Select({ value, onChange, children }: { value: string; onChange: (v: st
 export default function BookingPage() {
   const router = useRouter();
   const { refresh: refreshAuth } = useAuth();
+  const { canOrder, dashboardPath, loading: roleLoading } = useRoleFlags();
+
+  // Staff / executors don't order cleanings — bounce them to their panel.
+  React.useEffect(() => {
+    if (!roleLoading && !canOrder && dashboardPath) router.replace(dashboardPath);
+  }, [roleLoading, canOrder, dashboardPath, router]);
 
   // auth
   const [authChecked, setAuthChecked] = React.useState(false);
@@ -280,6 +286,11 @@ export default function BookingPage() {
       setSaving(false);
       alert("Не удалось оформить заказ. Попробуйте ещё раз.");
     }
+  }
+
+  // ── Staff/executor: redirecting to their panel ──
+  if (!roleLoading && !canOrder) {
+    return <div className="bg-surface"><div className="container-page py-14"><div className="h-64 rounded-3xl border border-border bg-card" /></div></div>;
   }
 
   // ── Auth gate ──

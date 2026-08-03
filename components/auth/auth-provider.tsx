@@ -30,6 +30,20 @@ export function useAuth() {
 }
 
 /**
+ * Role-derived flags for the UI. Guests and clients may order a cleaning;
+ * staff and executors are routed to their work panel instead.
+ */
+export function useRoleFlags() {
+  const { user, loading } = useAuth();
+  const role = user?.role ?? null;
+  const isStaff = role === "admin" || role === "manager";
+  const isExecutor = role === "executor";
+  const canOrder = !user || role === "client";
+  const dashboardPath = isStaff ? "/admin" : isExecutor ? "/profile" : null;
+  return { role, isStaff, isExecutor, canOrder, dashboardPath, loading };
+}
+
+/**
  * App-wide auth state. Fetches /api/auth/me once and shares the user with the
  * header, hero and calculator so they can switch between logged-in / guest UI.
  */

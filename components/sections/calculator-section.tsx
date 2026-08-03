@@ -1,7 +1,14 @@
+"use client";
+
 import { Section, SectionHeading } from "@/components/ui/section";
 import { HomeCalculator } from "@/features/calculator/home-calculator";
+import { useRoleFlags } from "@/components/auth/auth-provider";
 
 export function CalculatorSection() {
+  const { canOrder } = useRoleFlags();
+  // Staff / executors don't order cleanings — hide the ordering calculator.
+  if (!canOrder) return null;
+
   return (
     <Section id="calculator" className="scroll-mt-24 bg-surface">
       <SectionHeading
