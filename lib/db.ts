@@ -108,6 +108,14 @@ CREATE TABLE IF NOT EXISTS gallery (
   created_by TEXT REFERENCES users(id) ON DELETE SET NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+CREATE TABLE IF NOT EXISTS payouts (
+  id TEXT PRIMARY KEY,
+  executor_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  amount INT NOT NULL,
+  note TEXT,
+  created_by TEXT REFERENCES users(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
 -- idempotent migrations for existing databases
 ALTER TABLE users ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'client';
 ALTER TABLE users ADD COLUMN IF NOT EXISTS bonus_balance INT NOT NULL DEFAULT 0;
@@ -124,6 +132,9 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS preferred_executor_id TEXT REFERENCES
 -- OAuth (VK / Яндекс): пользователи входят без телефона, с аватаром провайдера
 ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT;
 ALTER TABLE users ALTER COLUMN phone DROP NOT NULL;
+-- executor payout requisites (manual payouts)
+ALTER TABLE users ADD COLUMN IF NOT EXISTS payout_details TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS inn TEXT;
 -- welcome promo for new clients (idempotent)
 INSERT INTO promo_codes (id, code, discount_type, value, active, min_order) VALUES ('seed-clean15', 'CLEAN15', 'percent', 15, true, 0) ON CONFLICT (code) DO NOTHING;
 `;

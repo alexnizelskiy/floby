@@ -5,6 +5,7 @@ import { MapPin, Phone, User, Wallet, CheckCircle2, Star, Camera, Check, Navigat
 import { Button } from "@/components/ui/button";
 import { formatPrice, cn } from "@/lib/utils";
 import { formatDateCard, endTime, estimateDurationHours, optionMap, type Booking } from "@/lib/booking";
+import { ExecutorPayout } from "@/components/profile/executor-payout";
 
 interface Order extends Booking {
   total: number;
@@ -117,6 +118,8 @@ export function ExecutorOrders() {
           </p>
         </div>
       </div>
+
+      <ExecutorPayout />
 
       {/* Schedule */}
       {active.length === 0 ? (

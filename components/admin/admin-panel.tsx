@@ -64,7 +64,9 @@ interface AdminReview {
 }
 interface Payout {
   id: string; name: string | null; phone: string | null;
-  done: number; active: number; gross: number; payout: number; rating: number;
+  payoutDetails: string | null; inn: string | null;
+  done: number; active: number; gross: number;
+  earned: number; paid: number; balance: number; rating: number;
 }
 
 export function AdminPanel({ role }: { role: Role }) {
@@ -78,6 +80,9 @@ export function AdminPanel({ role }: { role: Role }) {
   const [analytics, setAnalytics] = React.useState<Analytics | null>(null);
   const [reviews, setReviews] = React.useState<AdminReview[]>([]);
   const [payouts, setPayouts] = React.useState<Payout[]>([]);
+  const [payRow, setPayRow] = React.useState<Payout | null>(null);
+  const [payAmount, setPayAmount] = React.useState("");
+  const [payNote, setPayNote] = React.useState("");
   const [q, setQ] = React.useState("");
   const [newPromo, setNewPromo] = React.useState({ code: "", discountType: "percent", value: "", maxUses: "", minOrder: "" });
   const [promoErr, setPromoErr] = React.useState("");
@@ -106,6 +111,7 @@ export function AdminPanel({ role }: { role: Role }) {
   const loadPayouts = React.useCallback(async () => {
     const r = await fetch("/api/admin/payouts").then((x) => x.json()).catch(() => null);
     if (r?.ok) setPayouts(r.payouts);
+    return r;
   }, []);
 
   React.useEffect(() => {
@@ -118,6 +124,26 @@ export function AdminPanel({ role }: { role: Role }) {
       loadPayouts();
     }
   }, [loadAnalytics, loadBookings, loadUsers, loadPromos, loadReviews, loadPayouts, isAdminRole]);
+
+  function openPay(p: Payout) {
+    setPayRow(p);
+    setPayAmount(p.balance > 0 ? String(p.balance) : "");
+    setPayNote("");
+  }
+  async function markPaid() {
+    if (!payRow) return;
+    const amount = Math.round(Number(payAmount));
+    if (!amount || amount <= 0) return;
+    await fetch("/api/admin/payouts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ executorId: payRow.id, amount, note: payNote }),
+    });
+    setPayRow(null);
+    setPayAmount("");
+    setPayNote("");
+    loadPayouts();
+  }
 
   async function createPromo() {
     setPromoErr("");
@@ -548,37 +574,90 @@ export function AdminPanel({ role }: { role: Role }) {
 
         {/* ── Executor payouts (admin) ── */}
         {tab === "payouts" && isAdminRole && (
-          <div className="mt-6 overflow-x-auto rounded-2xl border border-border bg-card">
-            <table className="w-full min-w-[640px] text-sm">
-              <thead>
-                <tr className="border-b border-border text-left text-muted-foreground">
-                  <th className="px-4 py-3 font-medium">Клинер</th>
-                  <th className="px-4 py-3 font-medium">Выполнено</th>
-                  <th className="px-4 py-3 font-medium">В работе</th>
-                  <th className="px-4 py-3 font-medium">Сумма заказов</th>
-                  <th className="px-4 py-3 font-medium">К выплате</th>
-                  <th className="px-4 py-3 font-medium">Рейтинг</th>
-                </tr>
-              </thead>
-              <tbody>
-                {payouts.map((p) => (
-                  <tr key={p.id} className="border-b border-border last:border-0">
-                    <td className="px-4 py-3">
-                      <span className="font-medium">{p.name || "Клинер"}</span>
-                      {p.phone && <span className="block text-xs text-muted-foreground">{p.phone}</span>}
-                    </td>
-                    <td className="px-4 py-3">{p.done}</td>
-                    <td className="px-4 py-3">{p.active}</td>
-                    <td className="px-4 py-3">{formatPrice(p.gross)}</td>
-                    <td className="px-4 py-3 font-semibold text-primary">{formatPrice(p.payout)}</td>
-                    <td className="px-4 py-3">{p.rating > 0 ? p.rating.toFixed(1) : "—"}</td>
+          <div className="mt-6 flex flex-col gap-3">
+            <p className="text-sm text-muted-foreground">
+              Выплаты сейчас переводятся вручную. Здесь виден заработок клинера и его реквизиты; после перевода нажмите «Выплатить», чтобы отметить сумму.
+            </p>
+            <div className="overflow-x-auto rounded-2xl border border-border bg-card">
+              <table className="w-full min-w-[760px] text-sm">
+                <thead>
+                  <tr className="border-b border-border text-left text-muted-foreground">
+                    <th className="px-4 py-3 font-medium">Клинер</th>
+                    <th className="px-4 py-3 font-medium">Реквизиты</th>
+                    <th className="px-4 py-3 font-medium">Выполнено</th>
+                    <th className="px-4 py-3 font-medium">Заработано</th>
+                    <th className="px-4 py-3 font-medium">Выплачено</th>
+                    <th className="px-4 py-3 font-medium">К выплате</th>
+                    <th className="px-4 py-3 font-medium"></th>
                   </tr>
-                ))}
-                {payouts.length === 0 && (
-                  <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">Пока нет исполнителей.</td></tr>
-                )}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {payouts.map((p) => (
+                    <React.Fragment key={p.id}>
+                      <tr className="border-b border-border last:border-0">
+                        <td className="px-4 py-3">
+                          <span className="font-medium">{p.name || "Клинер"}</span>
+                          {p.phone && <span className="block text-xs text-muted-foreground">{p.phone}</span>}
+                        </td>
+                        <td className="px-4 py-3">
+                          {p.payoutDetails ? (
+                            <span className="block">{p.payoutDetails}</span>
+                          ) : (
+                            <span className="text-muted-foreground">не указаны</span>
+                          )}
+                          {p.inn && <span className="block text-xs text-muted-foreground">ИНН {p.inn}</span>}
+                        </td>
+                        <td className="px-4 py-3">{p.done}</td>
+                        <td className="px-4 py-3">{formatPrice(p.earned)}</td>
+                        <td className="px-4 py-3 text-muted-foreground">{formatPrice(p.paid)}</td>
+                        <td className={cn("px-4 py-3 font-semibold", p.balance > 0 ? "text-primary" : "text-muted-foreground")}>
+                          {formatPrice(p.balance)}
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <button
+                            onClick={() => (payRow?.id === p.id ? setPayRow(null) : openPay(p))}
+                            disabled={p.balance <= 0 && payRow?.id !== p.id}
+                            className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold hover:bg-surface-strong disabled:opacity-40"
+                          >
+                            Выплатить
+                          </button>
+                        </td>
+                      </tr>
+                      {payRow?.id === p.id && (
+                        <tr className="border-b border-border bg-surface last:border-0">
+                          <td colSpan={7} className="px-4 py-3">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <input
+                                type="number"
+                                value={payAmount}
+                                onChange={(e) => setPayAmount(e.target.value)}
+                                placeholder="Сумма, ₽"
+                                className={cn(selectCls, "w-32")}
+                              />
+                              <input
+                                value={payNote}
+                                onChange={(e) => setPayNote(e.target.value)}
+                                placeholder="Комментарий (напр. «за неделю»)"
+                                className={cn(selectCls, "min-w-[220px] flex-1")}
+                              />
+                              <button onClick={markPaid} className="rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground">
+                                Отметить выплаченным
+                              </button>
+                              <button onClick={() => setPayRow(null)} className="rounded-lg border border-border px-4 py-2 text-xs font-semibold hover:bg-surface-strong">
+                                Отмена
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  ))}
+                  {payouts.length === 0 && (
+                    <tr><td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">Пока нет исполнителей.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>

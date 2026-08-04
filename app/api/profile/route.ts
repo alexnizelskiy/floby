@@ -10,6 +10,8 @@ export async function PATCH(request: Request) {
     name?: string;
     email?: string;
     phone?: string;
+    payoutDetails?: string;
+    inn?: string;
   };
 
   // Only touch the fields the caller actually sent — a phone-only update must
@@ -23,6 +25,14 @@ export async function PATCH(request: Request) {
   if (body.email !== undefined) {
     sets.push(`email = $${params.length + 1}`);
     params.push((body.email ?? "").slice(0, 120).trim() || null);
+  }
+  if (body.payoutDetails !== undefined) {
+    sets.push(`payout_details = $${params.length + 1}`);
+    params.push((body.payoutDetails ?? "").slice(0, 200).trim() || null);
+  }
+  if (body.inn !== undefined) {
+    sets.push(`inn = $${params.length + 1}`);
+    params.push((body.inn ?? "").replace(/\D/g, "").slice(0, 12) || null);
   }
   if (sets.length > 0) {
     params.push(user.id);
