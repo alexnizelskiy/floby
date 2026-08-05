@@ -41,6 +41,13 @@ export const calcCleaningTypes: CleaningTypeDef[] = [
   { id: "post_renovation", label: "После ремонта", description: "Уборка строительной пыли и следов ремонта" },
 ];
 
+/** Service pages whose hero maps onto a calculator cleaning type. */
+export const SERVICE_CLEANING_TYPE: Record<string, CalcCleaningType> = {
+  "regular-cleaning": "regular",
+  "deep-cleaning": "general",
+  "post-renovation": "post_renovation",
+};
+
 export type AddonMode = "qty" | "toggle" | "percent";
 
 export interface CalcAddon {

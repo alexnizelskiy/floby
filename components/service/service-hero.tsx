@@ -1,13 +1,16 @@
 import Link from "next/link";
 import { Clock, Wallet, ShieldCheck, ArrowRight } from "lucide-react";
 import { OrderButton } from "@/components/forms/order-button";
+import { HeroCalcForm } from "@/components/sections/hero-calc-form";
 import { Button } from "@/components/ui/button";
 import { getIcon } from "@/lib/icons";
 import { formatPrice } from "@/lib/utils";
+import { SERVICE_CLEANING_TYPE } from "@/lib/calc";
 import type { Service } from "@/types";
 
 export function ServiceHero({ service }: { service: Service }) {
   const Icon = getIcon(service.icon);
+  const presetType = SERVICE_CLEANING_TYPE[service.slug];
   return (
     <section className="relative overflow-hidden border-b border-border bg-surface">
       <div className="pointer-events-none absolute -right-32 -top-32 size-[32rem] rounded-full bg-brand-100/60 blur-3xl" />
@@ -41,14 +44,29 @@ export function ServiceHero({ service }: { service: Service }) {
             </div>
           </div>
 
-          <div className="flex flex-col gap-3 pt-2 sm:flex-row">
-            <OrderButton size="xl" defaultService={service.slug} />
-            <Button asChild variant="outline" size="xl">
-              <Link href="/prices">
-                Все цены <ArrowRight />
+          {presetType ? (
+            <div className="max-w-md rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-sm)]">
+              <p className="mb-3 text-sm font-medium text-muted-foreground">
+                Выберите количество комнат и тип уборки
+              </p>
+              <HeroCalcForm presetType={presetType} />
+              <Link
+                href="/prices"
+                className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
+              >
+                Все цены <ArrowRight className="size-4" />
               </Link>
-            </Button>
-          </div>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3 pt-2 sm:flex-row">
+              <OrderButton size="xl" defaultService={service.slug} />
+              <Button asChild variant="outline" size="xl">
+                <Link href="/prices">
+                  Все цены <ArrowRight />
+                </Link>
+              </Button>
+            </div>
+          )}
         </div>
 
         <div className="relative">
