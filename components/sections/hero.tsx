@@ -26,12 +26,12 @@ export function Hero() {
           {/* Content */}
           <div className="relative flex w-full flex-col items-center gap-4 px-4 pb-8 pt-10 md:px-10 md:pb-12">
             <h1 className="text-center text-3xl font-bold leading-tight text-foreground md:text-5xl">
-              Уборка квартир и домов
+              Поддерживающая уборка
             </h1>
             <p className="mb-2 text-center text-lg font-medium text-foreground/80 md:text-xl">
-              Выберите комнаты и тип уборки — рассчитаем стоимость
+              Закажите уборку квартиры от 2050&nbsp;₽
             </p>
-            <HeroCalcForm className="max-w-xl" />
+            <HeroCalcForm variant="row" className="max-w-[1000px]" />
           </div>
         </div>
       </div>
