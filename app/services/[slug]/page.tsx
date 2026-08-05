@@ -4,7 +4,6 @@ import { services, getService } from "@/content/services";
 import { buildMetadata } from "@/lib/seo";
 import { serviceJsonLd, faqJsonLd, breadcrumbJsonLd } from "@/lib/jsonld";
 import { JsonLd } from "@/components/seo/json-ld";
-import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { ServiceHero } from "@/components/service/service-hero";
 import { ServiceBenefits } from "@/components/service/service-benefits";
 import { ServiceIncludes } from "@/components/service/service-includes";
@@ -58,7 +57,6 @@ export default async function ServicePage({
           breadcrumbJsonLd([{ label: "Главная", href: "/" }, ...crumbs]),
         ]}
       />
-      <Breadcrumbs items={crumbs} />
       <ServiceHero service={service} />
       <ServiceBenefits service={service} />
       <ServiceIncludes service={service} />

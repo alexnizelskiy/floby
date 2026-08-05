@@ -1,6 +1,4 @@
 import * as React from "react";
-import Link from "next/link";
-import { ChevronRight } from "lucide-react";
 import { JsonLd } from "@/components/seo/json-ld";
 import { breadcrumbJsonLd } from "@/lib/jsonld";
 
@@ -19,21 +17,8 @@ export function PageHeader({ eyebrow, title, description, crumbs = [], children 
   return (
     <header className="border-b border-border bg-surface">
       <div className="container-page py-10 md:py-14">
-        <nav aria-label="Хлебные крошки" className="flex flex-wrap items-center gap-1 text-sm text-muted-foreground">
-          {trail.map((c, i) => (
-            <React.Fragment key={c.href}>
-              {i > 0 && <ChevronRight className="size-3.5" />}
-              {i < trail.length - 1 ? (
-                <Link href={c.href} className="hover:text-foreground">{c.label}</Link>
-              ) : (
-                <span className="text-foreground">{c.label}</span>
-              )}
-            </React.Fragment>
-          ))}
-        </nav>
-
         {eyebrow && (
-          <span className="mt-6 inline-flex items-center gap-2 rounded-full bg-brand-50 px-3 py-1 text-sm font-semibold text-brand-700">
+          <span className="inline-flex items-center gap-2 rounded-full bg-brand-50 px-3 py-1 text-sm font-semibold text-brand-700">
             {eyebrow}
           </span>
         )}
