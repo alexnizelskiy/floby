@@ -41,8 +41,10 @@
 
 :root {
   /* Brand scale — floby green (from Figma: logo #23b059, active #00b368) */
-  --brand-50: #e9f9ef;
-  --brand-100: #c9f1d8;
+  /* 50/100 kept neutral on purpose — light-green fills read cheap, so soft
+     backgrounds/chips use the neutral surface family instead. */
+  --brand-50: #f2f5f3;
+  --brand-100: #e6ebe8;
   --brand-200: #99e4b6;
   --brand-300: #5fd28e;
   --brand-400: #2fbd6c;
