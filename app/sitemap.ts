@@ -1,7 +1,6 @@
 import type { MetadataRoute } from "next";
 import { siteConfig } from "@/lib/site";
 import { services } from "@/content/services";
-import { cities } from "@/content/cities";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = siteConfig.url;
@@ -14,9 +13,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/about",
     "/contacts",
     "/help",
+    "/business",
+    "/gift",
     "/vacancies",
     "/work-with-us",
     "/cities",
+    "/privacy",
+    "/requisites",
   ];
 
   const staticEntries: MetadataRoute.Sitemap = staticPaths.map((p) => ({
@@ -33,12 +36,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.8,
   }));
 
-  const cityEntries: MetadataRoute.Sitemap = cities.map((c) => ({
-    url: `${base}/cities/${c.slug}`,
-    lastModified: now,
-    changeFrequency: "monthly",
-    priority: c.status === "active" ? 0.7 : 0.4,
-  }));
-
-  return [...staticEntries, ...serviceEntries, ...cityEntries];
+  return [...staticEntries, ...serviceEntries];
 }

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Phone, Mail, Send, Clock, MapPin, MessageCircle } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { Section } from "@/components/ui/section";
@@ -71,10 +72,13 @@ export default function ContactsPage() {
             <div className="rounded-2xl border border-border bg-surface p-6 text-sm text-muted-foreground">
               <p className="font-semibold text-foreground">Реквизиты</p>
               <p className="mt-2">
-                {siteConfig.legalName}
+                {siteConfig.legal.sellerName}
                 {siteConfig.legal.selfEmployed && " · Плательщик НПД (самозанятый)"}
               </p>
               <p>ИНН {siteConfig.legal.inn}</p>
+              <Link href="/requisites" className="mt-2 inline-block text-primary hover:underline">
+                Все реквизиты →
+              </Link>
             </div>
           </div>
 

@@ -13,15 +13,15 @@ export const siteConfig = {
   locale: "ru_RU",
   themeColor: "#23b059",
 
-  // — Контакты (заглушки, заменить на реальные) —
+  // — Контакты —
   contacts: {
-    phone: "+7 900 000-00-00",
-    phoneHref: "tel:+79000000000",
-    email: "hello@floby.ru",
-    emailHref: "mailto:hello@floby.ru",
+    phone: "+7 988 893-72-88",
+    phoneHref: "tel:+79888937288",
+    email: "madnatec1@yandex.ru",
+    emailHref: "mailto:madnatec1@yandex.ru",
     telegram: "https://t.me/floby",
     telegramLabel: "@floby",
-    whatsapp: "https://wa.me/79000000000",
+    whatsapp: "https://wa.me/79888937288",
     whatsappLabel: "WhatsApp",
     workingHours: "Ежедневно с 8:00 до 22:00",
   },
@@ -44,10 +44,12 @@ export const siteConfig = {
     yandexMaps: "https://yandex.ru/maps/39/rostov-na-donu/",
   },
 
-  // — Юридическое (заглушки) —
+  // — Юридическое (самозанятый / НПД) —
   legal: {
-    inn: "0000000000",
-    ogrnip: "000000000000000",
+    sellerName: "Низельский Александр Александрович",
+    sellerShort: "Самозанятый Низельский А.А., бренд floby",
+    inn: "616615626580",
+    taxRegime: "Налог на профессиональный доход (самозанятый)",
     selfEmployed: true,
   },
 } as const;

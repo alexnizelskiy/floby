@@ -129,7 +129,7 @@ const sections: { title: string; body: React.ReactNode }[] = [
     title: "10. Контакты",
     body: (
       <p>
-        {siteConfig.legalName}
+        {siteConfig.legal.sellerName}
         {siteConfig.legal.selfEmployed && ", плательщик НПД (самозанятый)"}, ИНН {siteConfig.legal.inn}.
         По вопросам обработки персональных данных:{" "}
         <a href={siteConfig.contacts.emailHref} className="text-primary hover:underline">
