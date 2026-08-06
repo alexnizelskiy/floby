@@ -15,7 +15,7 @@ interface PageHeaderProps {
 export function PageHeader({ eyebrow, title, description, crumbs = [], children }: PageHeaderProps) {
   const trail = [{ label: "Главная", href: "/" }, ...crumbs];
   return (
-    <header className="border-b border-border bg-surface">
+    <header className="border-b border-border bg-background">
       <div className="container-page py-10 md:py-14">
         {eyebrow && (
           <span className="inline-flex items-center gap-2 rounded-full bg-brand-50 px-3 py-1 text-sm font-semibold text-brand-700">

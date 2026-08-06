@@ -38,7 +38,7 @@ export function ServiceHero({ service }: { service: Service }) {
   // Fallback (services without a photo, e.g. кондиционеры) — classic layout.
   const Icon = getIcon(service.icon);
   return (
-    <section className="relative overflow-hidden border-b border-border bg-surface">
+    <section className="relative overflow-hidden border-b border-border bg-background">
       <div className="pointer-events-none absolute -right-32 -top-32 size-[32rem] rounded-full bg-brand-100/60 blur-3xl" />
       <div className="container-page relative grid gap-10 py-14 md:py-20 lg:grid-cols-2 lg:items-center">
         <div className="flex flex-col gap-5">

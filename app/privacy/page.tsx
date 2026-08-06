@@ -162,7 +162,7 @@ export default function PrivacyPage() {
             </div>
           ))}
 
-          <p className="rounded-2xl border border-border bg-surface p-5 text-sm text-muted-foreground">
+          <p className="rounded-2xl border border-border bg-background p-5 text-sm text-muted-foreground">
             Это типовой шаблон, адаптированный под сервис floby. Перед публикацией рекомендуем проверить
             его с юристом и внести актуальные реквизиты в <code>lib/site.ts</code>.
           </p>

@@ -29,7 +29,7 @@ export function Accordion({ items, className, defaultOpen = null }: AccordionPro
             key={i}
             className={cn(
               "overflow-hidden rounded-2xl border transition-colors",
-              isOpen ? "border-brand-300 bg-surface" : "border-border bg-card"
+              isOpen ? "border-brand-300 bg-background" : "border-border bg-card"
             )}
           >
             <button

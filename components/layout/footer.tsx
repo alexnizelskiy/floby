@@ -9,7 +9,7 @@ export function Footer() {
   const { contacts, geo } = siteConfig;
   const cityPrep = activeCities[0]?.namePrepositional ?? `в ${geo.city}`;
   return (
-    <footer className="border-t border-border bg-surface">
+    <footer className="border-t border-border bg-background">
       <div className="container-page py-14 md:py-16">
         <div className="grid gap-10 lg:grid-cols-[1.4fr_repeat(3,1fr)]">
           <div className="flex flex-col gap-4">

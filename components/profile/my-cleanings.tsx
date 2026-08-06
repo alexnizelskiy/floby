@@ -314,7 +314,7 @@ function BookingCard({
       {selected.length > 0 && (
         <div className="mt-5 flex flex-wrap gap-2">
           {selected.map((o) => (
-            <span key={o.id} className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-medium">
+            <span key={o.id} className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium">
               {o.title}
               {o.price > 0 && <span className="font-semibold text-brand-600">+{formatPrice(o.price)}</span>}
             </span>

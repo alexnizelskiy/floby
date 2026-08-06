@@ -79,7 +79,7 @@ export function BonusesView() {
           {referralSteps.map((step, i) => {
             const Icon = getIcon(step.icon);
             return (
-              <div key={step.title} className="flex flex-col gap-3 rounded-2xl border border-border bg-surface p-6">
+              <div key={step.title} className="flex flex-col gap-3 rounded-2xl border border-border bg-background p-6">
                 <div className="flex items-center justify-between">
                   <span className="grid size-11 place-items-center rounded-xl bg-brand-100 text-brand-700">
                     <Icon className="size-5" />

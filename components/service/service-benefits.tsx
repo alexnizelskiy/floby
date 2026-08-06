@@ -5,7 +5,7 @@ import type { Service } from "@/types";
 
 export function ServiceBenefits({ service }: { service: Service }) {
   return (
-    <Section className="bg-surface">
+    <Section className="bg-background">
       <SectionHeading
         eyebrow="Преимущества"
         title={`Почему заказывают ${service.shortTitle.toLowerCase()} у нас`}

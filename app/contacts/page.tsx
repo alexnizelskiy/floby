@@ -69,7 +69,7 @@ export default function ContactsPage() {
               </p>
             </div>
 
-            <div className="rounded-2xl border border-border bg-surface p-6 text-sm text-muted-foreground">
+            <div className="rounded-2xl border border-border bg-background p-6 text-sm text-muted-foreground">
               <p className="font-semibold text-foreground">Реквизиты</p>
               <p className="mt-2">
                 {siteConfig.legal.sellerName}

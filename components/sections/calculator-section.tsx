@@ -10,7 +10,7 @@ export function CalculatorSection() {
   if (!canOrder) return null;
 
   return (
-    <Section id="calculator" className="scroll-mt-24 bg-surface">
+    <Section id="calculator" className="scroll-mt-24 bg-background">
       <SectionHeading
         eyebrow="Калькулятор стоимости"
         title="Рассчитайте цену уборки за минуту"

@@ -25,14 +25,14 @@ export default async function ProfileLayout({
 
   if (!user) {
     return (
-      <div className="bg-surface">
+      <div className="bg-background">
         <ProfileLogin />
       </div>
     );
   }
 
   return (
-    <div className="bg-surface">
+    <div className="bg-background">
       <div className="container-page py-10 md:py-14">
         <div className="mb-8 flex items-center gap-4">
           <span className="grid size-14 place-items-center rounded-full bg-brand-100 text-brand-700">

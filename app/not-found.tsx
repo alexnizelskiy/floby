@@ -13,7 +13,7 @@ const popular = [
 
 export default function NotFound() {
   return (
-    <section className="bg-surface">
+    <section className="bg-background">
       <div className="container-page flex min-h-[70vh] flex-col items-center justify-center py-16 text-center md:py-24">
         <span className="inline-flex items-center gap-2 rounded-full bg-brand-50 px-3 py-1 text-sm font-semibold text-brand-700">
           Ошибка 404

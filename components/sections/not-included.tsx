@@ -13,7 +13,7 @@ const items = [
 
 export function NotIncluded() {
   return (
-    <Section className="bg-surface">
+    <Section className="bg-background">
       <div className="grid gap-10 lg:grid-cols-[1fr_1.2fr] lg:items-center">
         <SectionHeading
           eyebrow="Что не входит"

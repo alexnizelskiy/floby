@@ -290,13 +290,13 @@ export default function BookingPage() {
 
   // ── Staff/executor: redirecting to their panel ──
   if (!roleLoading && !canOrder) {
-    return <div className="bg-surface"><div className="container-page py-14"><div className="h-64 rounded-3xl border border-border bg-card" /></div></div>;
+    return <div className="bg-background"><div className="container-page py-14"><div className="h-64 rounded-3xl border border-border bg-card" /></div></div>;
   }
 
   // ── Auth gate ──
   if (authChecked && !authed) {
     return (
-      <div className="bg-surface">
+      <div className="bg-background">
         <div className="container-page flex min-h-[60vh] items-center justify-center py-14">
           <div className="w-full max-w-md rounded-3xl border border-border bg-card p-6 md:p-8">
             <span className="grid size-12 place-items-center rounded-2xl bg-brand-100 text-brand-700">
@@ -337,12 +337,12 @@ export default function BookingPage() {
   }
 
   if (!authChecked) {
-    return <div className="bg-surface"><div className="container-page py-14"><div className="h-64 rounded-3xl border border-border bg-card" /></div></div>;
+    return <div className="bg-background"><div className="container-page py-14"><div className="h-64 rounded-3xl border border-border bg-card" /></div></div>;
   }
 
   // ── Order step with live calculator ──
   return (
-    <div className="bg-surface">
+    <div className="bg-background">
       <div className="container-page py-8 md:py-12">
         <div className="mb-6 flex items-center gap-3 rounded-2xl border border-brand-200 bg-brand-50 p-4">
           <CheckCircle2 className="size-7 shrink-0 text-brand-600" />

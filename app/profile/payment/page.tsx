@@ -12,7 +12,7 @@ export default function PaymentPage() {
 
         <div className="mt-6 flex flex-col gap-3">
           {savedCards.length === 0 ? (
-            <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border bg-surface p-8 text-center">
+            <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border bg-background p-8 text-center">
               <span className="grid size-12 place-items-center rounded-full bg-brand-100 text-brand-700">
                 <CreditCard className="size-6" />
               </span>
@@ -25,7 +25,7 @@ export default function PaymentPage() {
             savedCards.map((card) => (
               <div
                 key={card.id}
-                className="flex items-center gap-3 rounded-xl border border-border bg-surface px-4 py-3"
+                className="flex items-center gap-3 rounded-xl border border-border bg-background px-4 py-3"
               >
                 <CreditCard className="size-5 text-primary" />
                 <span className="text-sm font-medium">

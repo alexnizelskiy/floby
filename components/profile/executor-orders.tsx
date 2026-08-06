@@ -321,7 +321,7 @@ function OrderPhotoUpload({ bookingId }: { bookingId: string }) {
   }
 
   return (
-    <form onSubmit={submit} className="mt-3 rounded-xl border border-dashed border-border bg-surface p-4">
+    <form onSubmit={submit} className="mt-3 rounded-xl border border-dashed border-border bg-background p-4">
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="text-sm">
           <span className="mb-1 block text-muted-foreground">Фото «до»</span>

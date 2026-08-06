@@ -204,7 +204,7 @@ export function AdminPanel({ role }: { role: Role }) {
   }
 
   return (
-    <div className="bg-surface">
+    <div className="bg-background">
       <div className="container-page py-10 md:py-14">
         <h1 className="text-3xl font-bold">Панель управления</h1>
         <p className="mt-1 text-muted-foreground">
@@ -624,7 +624,7 @@ export function AdminPanel({ role }: { role: Role }) {
                         </td>
                       </tr>
                       {payRow?.id === p.id && (
-                        <tr className="border-b border-border bg-surface last:border-0">
+                        <tr className="border-b border-border bg-background last:border-0">
                           <td colSpan={7} className="px-4 py-3">
                             <div className="flex flex-wrap items-center gap-2">
                               <input

@@ -5,7 +5,7 @@ import { getIcon } from "@/lib/icons";
 
 export function WhyUs() {
   return (
-    <Section className="bg-surface">
+    <Section className="bg-background">
       <SectionHeading
         eyebrow="Почему выбирают floby"
         title="Надёжная уборка без сюрпризов"
