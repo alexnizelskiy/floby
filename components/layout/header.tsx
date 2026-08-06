@@ -30,6 +30,8 @@ export function Header() {
   const isActive = useActive();
   const pathname = usePathname();
   const homeActive = pathname === "/";
+  // Химчистка — самостоятельная услуга, ряд вкладок уборки на ней не показываем
+  const hideServiceTabs = pathname === "/services/furniture-cleaning";
   const { user } = useAuth();
 
   React.useEffect(() => {
@@ -118,32 +120,38 @@ export function Header() {
       </div>
 
       {/* ── Service tabs row ── */}
-      <div className="shadow-[0px_2px_6px_0px_rgba(9,8,37,0.08)]">
-        <div className="container-page">
-          <nav className="flex items-center gap-6 overflow-x-auto py-3.5 md:gap-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {serviceTabs.map((tab) => {
-              const active =
-                isActive(tab.href) ||
-                (homeActive && tab.href === "/services/regular-cleaning");
-              return (
-                <Link
-                  key={tab.href}
-                  href={tab.href}
-                  className={cn(
-                    "shrink-0 whitespace-nowrap text-sm transition-colors",
-                    tab.bold ? "font-bold" : "font-medium",
-                    active
-                      ? "text-brand-accent"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  {tab.label}
-                </Link>
-              );
-            })}
-          </nav>
+      {!hideServiceTabs && (
+        <div className="shadow-[0px_2px_6px_0px_rgba(9,8,37,0.08)]">
+          <div className="container-page">
+            <nav className="flex items-center gap-6 overflow-x-auto py-3.5 md:gap-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {serviceTabs.map((tab) => {
+                const active =
+                  isActive(tab.href) ||
+                  (homeActive && tab.href === "/services/regular-cleaning");
+                return (
+                  <React.Fragment key={tab.href}>
+                    {tab.divider && (
+                      <span aria-hidden className="h-4 w-px shrink-0 self-center bg-border" />
+                    )}
+                    <Link
+                      href={tab.href}
+                      className={cn(
+                        "shrink-0 whitespace-nowrap text-sm transition-colors",
+                        tab.bold ? "font-bold" : "font-medium",
+                        active
+                          ? "text-brand-accent"
+                          : "text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      {tab.label}
+                    </Link>
+                  </React.Fragment>
+                );
+              })}
+            </nav>
+          </div>
         </div>
-      </div>
+      )}
 
       <MobileMenu open={menuOpen} onClose={() => setMenuOpen(false)} isActive={isActive} user={user} />
     </header>

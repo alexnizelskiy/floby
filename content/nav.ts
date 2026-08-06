@@ -20,11 +20,11 @@ export const topNav: NavLink[] = [
 ];
 
 /** Строка услуг под шапкой (табы с разделителями, как в Figma). */
-export const serviceTabs: (NavLink & { bold?: boolean })[] = [
+export const serviceTabs: (NavLink & { bold?: boolean; divider?: boolean })[] = [
   { label: "Поддерживающая", href: "/services/regular-cleaning" },
-  { label: "Окна", href: "/services/window-cleaning" },
   { label: "Генеральная", href: "/services/deep-cleaning" },
   { label: "После ремонта", href: "/services/post-renovation" },
+  { label: "Окна", href: "/services/window-cleaning", divider: true },
   { label: "Кондиционеры", href: "/services/air-conditioner-cleaning" },
   { label: "Премиум", href: "/prices", bold: true },
 ];
