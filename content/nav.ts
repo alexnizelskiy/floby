@@ -26,7 +26,6 @@ export const serviceTabs: (NavLink & { bold?: boolean; divider?: boolean })[] = 
   { label: "После ремонта", href: "/services/post-renovation" },
   { label: "Окна", href: "/services/window-cleaning", divider: true },
   { label: "Кондиционеры", href: "/services/air-conditioner-cleaning" },
-  { label: "Премиум", href: "/prices", bold: true },
 ];
 
 /** Основная навигация в шапке. */
