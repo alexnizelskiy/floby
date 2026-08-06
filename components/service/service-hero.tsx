@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Clock, Wallet, ShieldCheck, ArrowRight } from "lucide-react";
 import { OrderButton } from "@/components/forms/order-button";
 import { HeroCalcForm } from "@/components/sections/hero-calc-form";
+import { WindowOrderForm } from "@/components/sections/window-order-form";
 import { PhotoHero } from "@/components/sections/photo-hero";
 import { Button } from "@/components/ui/button";
 import { getIcon } from "@/lib/icons";
@@ -21,6 +22,21 @@ const SERVICE_HERO_IMAGE: Record<string, string> = {
 export function ServiceHero({ service }: { service: Service }) {
   const presetType = SERVICE_CLEANING_TYPE[service.slug];
   const heroImage = SERVICE_HERO_IMAGE[service.slug];
+
+  // Window cleaning — flat-price offer with its own picker (окна / + балконы).
+  if (service.slug === "window-cleaning") {
+    return (
+      <PhotoHero
+        image={heroImage}
+        imageAlt="Мытьё окон в квартире — floby"
+        title="Мытьё окон в квартире"
+        subtitle="Закажите мытьё всех окон по единой цене"
+        priority
+      >
+        <WindowOrderForm className="max-w-[1000px]" />
+      </PhotoHero>
+    );
+  }
 
   // Pages with a hero photo use the homepage-style photo hero.
   if (heroImage) {

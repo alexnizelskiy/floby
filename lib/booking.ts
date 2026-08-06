@@ -107,7 +107,10 @@ export function computeBase(rooms: number, baths: number) {
 }
 
 export function estimateDurationHours(rooms: number, baths: number) {
-  return Math.min(9, 2 + Math.max(0, rooms - 1) + Math.max(0, baths - 1));
+  // window / non-room orders have no rooms — fall back to 1 to avoid NaN
+  const r = Number(rooms) || 1;
+  const b = Number(baths) || 1;
+  return Math.min(9, 2 + Math.max(0, r - 1) + Math.max(0, b - 1));
 }
 
 export function computePrice(
