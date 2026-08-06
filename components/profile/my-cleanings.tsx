@@ -4,6 +4,8 @@ import * as React from "react";
 import { MapPin, User, Plus, HelpCircle, Check, Repeat, Star, ChevronDown } from "lucide-react";
 import { QuickOrder } from "@/components/profile/quick-order";
 import { RateOrder } from "@/components/profile/rate-order";
+import { Modal } from "@/components/ui/modal";
+import { Button } from "@/components/ui/button";
 import { getIcon } from "@/lib/icons";
 import { formatPrice, cn } from "@/lib/utils";
 import {
@@ -163,6 +165,7 @@ function BookingCard({
   const isDone = b.status === "done";
 
   const [rescheduling, setRescheduling] = React.useState(false);
+  const [confirmCancel, setConfirmCancel] = React.useState(false);
   const [rDate, setRDate] = React.useState(b.date);
   const [rTime, setRTime] = React.useState(b.time);
   const [busy, setBusy] = React.useState(false);
@@ -259,7 +262,7 @@ function BookingCard({
               </button>
               <button
                 type="button"
-                onClick={onCancel}
+                onClick={() => setConfirmCancel(true)}
                 className="rounded-xl border border-border px-6 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-surface"
               >
                 Отменить
@@ -338,6 +341,26 @@ function BookingCard({
           </span>
         )}
       </div>
+
+      <Modal
+        open={confirmCancel}
+        onClose={() => setConfirmCancel(false)}
+        title="Отменить уборку?"
+        description="Заказ будет отменён — вернуть его не получится, придётся оформить заново."
+      >
+        <div className="flex flex-col gap-2.5 sm:flex-row">
+          <Button variant="outline" size="lg" className="sm:flex-1" onClick={() => setConfirmCancel(false)}>
+            Оставить
+          </Button>
+          <button
+            type="button"
+            onClick={() => { setConfirmCancel(false); onCancel(); }}
+            className="inline-flex h-12 items-center justify-center rounded-xl bg-destructive px-6 text-base font-semibold text-white transition-colors hover:opacity-90 sm:flex-1"
+          >
+            Да, отменить
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 }
