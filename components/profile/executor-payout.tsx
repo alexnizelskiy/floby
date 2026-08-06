@@ -62,15 +62,15 @@ export function ExecutorPayout() {
       </h2>
 
       <div className="mt-4 grid grid-cols-3 gap-3">
-        <div className="rounded-xl bg-surface p-3 text-center">
+        <div className="rounded-xl border border-border bg-card p-3 text-center">
           <p className="text-xs text-muted-foreground">Заработано</p>
           <p className="mt-1 text-lg font-bold">{formatPrice(state.earned)}</p>
         </div>
-        <div className="rounded-xl bg-surface p-3 text-center">
+        <div className="rounded-xl border border-border bg-card p-3 text-center">
           <p className="text-xs text-muted-foreground">Выплачено</p>
           <p className="mt-1 text-lg font-bold">{formatPrice(state.paid)}</p>
         </div>
-        <div className="rounded-xl bg-brand-50 p-3 text-center">
+        <div className="rounded-xl border border-border bg-card p-3 text-center">
           <p className="text-xs text-brand-700">К выплате</p>
           <p className="mt-1 text-lg font-bold text-brand-700">{formatPrice(state.balance)}</p>
         </div>

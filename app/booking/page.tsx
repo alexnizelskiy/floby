@@ -414,7 +414,7 @@ export default function BookingPage() {
           {/* Right: order summary */}
           <aside className="lg:sticky lg:top-24 lg:self-start">
             <div className="flex flex-col gap-4 rounded-3xl border border-border bg-card p-5 md:p-6">
-              <div className="rounded-2xl bg-surface p-5">
+              <div className="rounded-2xl border border-border bg-card p-5">
                 <p className="text-sm text-muted-foreground">{calcTitle(state.rooms, state.propertyType)}</p>
                 <p className="mt-0.5 text-xs text-muted-foreground">
                   {calcCleaningTypes.find((t) => t.id === state.cleaningType)?.label} · {result.durationLabel}

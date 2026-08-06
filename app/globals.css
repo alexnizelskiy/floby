@@ -63,12 +63,12 @@
   --ink-900: #14132f;
   --ink-800: #24233f;
 
-  /* Semantic tokens (light) */
+  /* Semantic tokens (light) — neutral greys (no green tint) */
   --background: #ffffff;
-  --surface: #f5faf6;
-  --surface-strong: #edf5ef;
+  --surface: #f6f7f8;
+  --surface-strong: #eef0f2;
   --foreground: #090825;
-  --muted: #f1f4f2;
+  --muted: #f2f3f4;
   --muted-foreground: #6b6f7d;
   --card: #ffffff;
   --card-foreground: #090825;
@@ -79,14 +79,14 @@
   --primary-hover: var(--brand-600);
   --primary-foreground: #ffffff;
 
-  --secondary: #edf5ef;
+  --secondary: #eef0f2;
   --secondary-foreground: #165c34;
 
   --accent: var(--brand-50);
   --accent-foreground: var(--brand-800);
 
-  --border: #e3ede7;
-  --input: #e3ede7;
+  --border: #e5e7eb;
+  --input: #e5e7eb;
   --ring: var(--brand-500);
 
   --success: #16a34a;

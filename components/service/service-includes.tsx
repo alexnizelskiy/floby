@@ -47,7 +47,7 @@ export function ServiceIncludes({ service }: { service: Service }) {
                 </li>
               ))}
             </ul>
-            <p className="mt-6 rounded-xl bg-surface p-4 text-sm text-muted-foreground">
+            <p className="mt-6 rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">
               Нужна дополнительная услуга? Мы поможем — просто укажите это при заказе.
             </p>
           </div>

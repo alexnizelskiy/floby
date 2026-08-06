@@ -80,7 +80,7 @@ export function HomeCalculator() {
       {/* Order card */}
       <div className="lg:sticky lg:top-24 lg:self-start">
         <div className="flex flex-col gap-4 rounded-3xl border border-border bg-card p-5 md:p-6">
-          <div className="rounded-2xl bg-surface p-5">
+          <div className="rounded-2xl border border-border bg-card p-5">
             <p className="text-sm text-muted-foreground">{calcTitle(state.rooms, state.propertyType)}</p>
             <div className="mt-3 flex items-baseline justify-between">
               <span className="text-sm text-muted-foreground">К оплате</span>
