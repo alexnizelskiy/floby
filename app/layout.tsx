@@ -2,9 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Raleway, Belanosima } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
-import { Header } from "@/components/layout/header";
-import { Footer } from "@/components/layout/footer";
-import { PromoBanner } from "@/components/layout/promo-banner";
+import { SiteShell } from "@/components/layout/site-shell";
 import { ThemeScript } from "@/components/theme/theme-toggle";
 import { JsonLd } from "@/components/seo/json-ld";
 import { RefCapture } from "@/components/referral/ref-capture";
@@ -66,10 +64,7 @@ export default function RootLayout({
         <RefCapture />
         <RegisterSW />
         <AuthProvider>
-          <PromoBanner />
-          <Header />
-          <main className="flex-1">{children}</main>
-          <Footer />
+          <SiteShell>{children}</SiteShell>
         </AuthProvider>
       </body>
     </html>

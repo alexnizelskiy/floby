@@ -49,7 +49,7 @@ export const secondaryNav: NavLink[] = [
 export const footerNav: { title: string; links: NavLink[] }[] = [
   {
     title: "Услуги",
-    links: [...serviceNavLinks, { label: "Выгул собак", href: "/dog-walking" }],
+    links: [...serviceNavLinks, { label: "Выгул собак", href: "/pets" }],
   },
   {
     title: "Компания",

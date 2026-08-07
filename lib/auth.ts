@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { randomBytes, randomUUID, createHash } from "node:crypto";
 import { query, queryOne } from "@/lib/db";
 
@@ -56,6 +56,13 @@ export function newId(): string {
   return randomUUID();
 }
 
+/** Cookie domain — shared across *.floby.ru so www and pets subdomains see the
+ *  same session. Host-only (undefined) on localhost / vercel.app previews. */
+async function cookieDomain(): Promise<string | undefined> {
+  const host = ((await headers()).get("host") ?? "").split(":")[0];
+  return host.endsWith("floby.ru") ? ".floby.ru" : undefined;
+}
+
 /** Create a session for a user and set the cookie. */
 export async function createSession(userId: string): Promise<void> {
   const token = randomBytes(32).toString("hex");
@@ -70,6 +77,7 @@ export async function createSession(userId: string): Promise<void> {
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
+    domain: await cookieDomain(),
     expires,
   });
 }
@@ -78,7 +86,10 @@ export async function destroySession(): Promise<void> {
   const store = await cookies();
   const token = store.get(COOKIE)?.value;
   if (token) await query("DELETE FROM sessions WHERE token = $1", [token]);
+  const domain = await cookieDomain();
   store.delete(COOKIE);
+  // also clear the shared *.floby.ru cookie if it was set with a domain
+  if (domain) store.set(COOKIE, "", { path: "/", domain, expires: new Date(0) });
 }
 
 /** Current logged-in user (or null). */
