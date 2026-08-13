@@ -20,7 +20,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/cities",
     "/privacy",
     "/requisites",
-    "/pets",
   ];
 
   const staticEntries: MetadataRoute.Sitemap = staticPaths.map((p) => ({
