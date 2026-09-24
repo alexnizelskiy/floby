@@ -8,10 +8,6 @@ import { roomChecklists, type RoomChecklist } from "@/content/checklist";
 
 const COLLAPSED = 5;
 
-function priceLabel(price: number, unit?: string) {
-  return `${price} р.${unit ? ` ${unit}` : ""}`;
-}
-
 function RoomBlock({ room }: { room: RoomChecklist }) {
   const [expanded, setExpanded] = React.useState(false);
   const canExpand = room.included.length > COLLAPSED || room.addons.length > COLLAPSED;
@@ -64,15 +60,10 @@ function RoomBlock({ room }: { room: RoomChecklist }) {
           {addons.map((addon) => (
             <li
               key={addon.title}
-              className="flex items-start justify-between gap-3 border-b border-border py-4"
+              className="flex items-center justify-between gap-3 border-b border-border py-4"
             >
-              <div>
-                <p className="text-base font-medium text-brand-600">{addon.title}</p>
-                <p className="mt-0.5 text-sm text-muted-foreground">
-                  {priceLabel(addon.price, addon.unit)}
-                </p>
-              </div>
-              <Hint text={addon.hint} className="mt-1" />
+              <span className="text-base font-medium text-brand-600">{addon.title}</span>
+              <Hint text={addon.hint} />
             </li>
           ))}
         </ul>
@@ -87,7 +78,7 @@ export function CleaningChecklist() {
       <SectionHeading
         eyebrow="Что входит в уборку"
         title="Наводим порядок в каждой зоне квартиры"
-        description="Показываем, что входит в стоимость, и что можно добавить по желанию."
+        description="Показываем, что входит в стоимость, и что можно добавить по желанию. Точную цену с учётом ваших опций посчитает калькулятор."
       />
 
       <div className="mt-12 flex flex-col gap-14 md:gap-20">

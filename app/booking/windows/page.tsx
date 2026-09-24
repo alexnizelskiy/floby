@@ -3,21 +3,25 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { CheckCircle2, ChevronDown, ShieldCheck, CreditCard, Banknote } from "lucide-react";
+import { CheckCircle2, ChevronDown, ShieldCheck, CreditCard, Banknote, Minus, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SmsAuthModal } from "@/features/booking/sms-auth-modal";
 import { OAuthButtons } from "@/components/auth/oauth-buttons";
 import { useAuth, useRoleFlags } from "@/components/auth/auth-provider";
+import { usePricing } from "@/components/pricing/pricing-provider";
 import { formatPrice, cn } from "@/lib/utils";
 import { activeCities } from "@/content/cities";
 import { generateDates, generateTimes, formatDateLong } from "@/lib/booking";
 import {
-  windowOptions,
+  WINDOW_DEFAULT_SASHES,
+  WINDOW_MIN_SASHES,
+  WINDOW_MAX_SASHES,
+  clampSashes,
+  windowSashPrice,
   windowPrice,
   windowLabel,
   getWindowDraft,
   clearWindowDraft,
-  type WindowOption,
 } from "@/lib/windows";
 
 const dates = generateDates(14);
@@ -49,6 +53,7 @@ export default function WindowBookingPage() {
   const router = useRouter();
   const { refresh: refreshAuth } = useAuth();
   const { canOrder, dashboardPath, loading: roleLoading } = useRoleFlags();
+  const pricing = usePricing();
 
   React.useEffect(() => {
     if (!roleLoading && !canOrder && dashboardPath) router.replace(dashboardPath);
@@ -58,7 +63,7 @@ export default function WindowBookingPage() {
   const [authed, setAuthed] = React.useState(false);
   const [smsOpen, setSmsOpen] = React.useState(false);
 
-  const [option, setOption] = React.useState<WindowOption>("only");
+  const [sashes, setSashes] = React.useState(WINDOW_DEFAULT_SASHES);
   const [name, setName] = React.useState("");
   const [phone, setPhone] = React.useState("");
   const [needsPhone, setNeedsPhone] = React.useState(false);
@@ -72,12 +77,12 @@ export default function WindowBookingPage() {
   const [contactErr, setContactErr] = React.useState<string | null>(null);
   const [saving, setSaving] = React.useState(false);
 
-  const total = windowPrice(option);
+  const total = windowPrice(sashes, pricing);
 
   // hydrate draft + auth
   React.useEffect(() => {
     const d = getWindowDraft();
-    if (d?.option) setOption(d.option);
+    if (d?.sashes) setSashes(clampSashes(d.sashes));
     fetch("/api/auth/me")
       .then((r) => r.json())
       .then((data) => {
@@ -131,10 +136,10 @@ export default function WindowBookingPage() {
       refreshAuth();
     }
 
-    const label = windowLabel(option);
+    const label = windowLabel(sashes);
     const data = {
       kind: "windows",
-      windowOption: option,
+      windowSashes: sashes,
       title: `Мытьё окон · ${label}`,
       services: [{ id: "windows", title: `Мытьё окон · ${label}`, qty: 1, price: total }],
       city,
@@ -238,7 +243,7 @@ export default function WindowBookingPage() {
           <CheckCircle2 className="size-7 shrink-0 text-brand-600" />
           <div>
             <p className="font-semibold">Мытьё окон в квартире</p>
-            <p className="text-sm text-muted-foreground">Единая цена за все окна. Выберите вариант и укажите адрес.</p>
+            <p className="text-sm text-muted-foreground">Считаем по количеству створок. Укажите, сколько окон помыть, и адрес.</p>
           </div>
         </div>
 
@@ -263,31 +268,40 @@ export default function WindowBookingPage() {
               </div>
             )}
 
-            {/* Window option */}
+            {/* Sashes count */}
             <div className="rounded-3xl border border-border bg-card p-5 md:p-7">
-              <h2 className="text-xl font-bold">Что моем</h2>
-              <div className="mt-4 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-                {windowOptions.map((o) => (
+              <h2 className="text-xl font-bold">Сколько окон моем</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Считаем по створкам — {formatPrice(windowSashPrice(pricing))} за створку. Одна створка — это стекло с двух
+                сторон, рама и подоконник.
+              </p>
+              <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl border border-border px-4 py-3.5">
+                <span className="text-sm font-medium">Количество створок</span>
+                <div className="flex items-center gap-4">
                   <button
-                    key={o.id}
                     type="button"
-                    onClick={() => setOption(o.id)}
-                    aria-pressed={option === o.id}
-                    className={cn(
-                      "flex items-center justify-between gap-2 rounded-2xl border px-4 py-3.5 text-left text-sm font-medium transition-colors",
-                      option === o.id ? "border-brand-500" : "border-border hover:border-brand-300"
-                    )}
+                    onClick={() => setSashes((s) => clampSashes(s - 1))}
+                    disabled={sashes <= WINDOW_MIN_SASHES}
+                    aria-label="Меньше створок"
+                    className="grid size-10 place-items-center rounded-full border border-border transition-colors hover:border-brand-300 disabled:opacity-40"
                   >
-                    <span className="flex items-center gap-2.5">
-                      <span className={cn("grid size-5 shrink-0 place-items-center rounded-full border-2", option === o.id ? "border-brand-500" : "border-input")}>
-                        {option === o.id && <span className="size-2.5 rounded-full bg-brand-500" />}
-                      </span>
-                      {o.label}
-                    </span>
-                    <span className="text-muted-foreground">{formatPrice(windowPrice(o.id))}</span>
+                    <Minus className="size-4" />
                   </button>
-                ))}
+                  <span className="w-8 text-center text-xl font-bold tabular-nums">{sashes}</span>
+                  <button
+                    type="button"
+                    onClick={() => setSashes((s) => clampSashes(s + 1))}
+                    disabled={sashes >= WINDOW_MAX_SASHES}
+                    aria-label="Больше створок"
+                    className="grid size-10 place-items-center rounded-full border border-border transition-colors hover:border-brand-300 disabled:opacity-40"
+                  >
+                    <Plus className="size-4" />
+                  </button>
+                </div>
               </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Панорамное остекление и нестандартные окна клинер уточнит на месте.
+              </p>
             </div>
 
             {/* Address */}
@@ -358,7 +372,7 @@ export default function WindowBookingPage() {
             <div className="flex flex-col gap-4 rounded-3xl border border-border bg-card p-5 md:p-6">
               <h2 className="text-lg font-bold">Мытьё окон</h2>
               <div className="flex flex-col gap-2 border-y border-border py-4 text-sm">
-                <Row label="Вариант" value={windowLabel(option)} />
+                <Row label="Окна" value={windowLabel(sashes)} />
                 <Row label="Дата" value={date ? formatDateLong(date) : "не выбрана"} />
                 <Row label="Время" value={time || "не выбрано"} />
                 <Row label="Оплата" value={payment === "card" ? "Картой онлайн" : "Наличными"} />

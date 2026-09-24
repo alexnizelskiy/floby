@@ -84,12 +84,35 @@ export const addonMap = new Map(calcAddons.map((a) => [a.id, a]));
 
 export const ECO_PERCENT = 40;
 
-/** Базовая цена по числу комнат и типу уборки (включён один санузел). */
-const BASE: Record<CalcCleaningType, Record<number, number>> = {
+/** Базовая цена по числу комнат и типу уборки (включён один санузел). Эталон. */
+export const defaultBase: Record<CalcCleaningType, Record<number, number>> = {
   regular: { 1: 2050, 2: 2950, 3: 3850, 4: 4750, 5: 5950 },
   general: { 1: 4900, 2: 5900, 3: 7500, 4: 9500, 5: 12500 },
   post_renovation: { 1: 6200, 2: 7500, 3: 9500, 4: 12000, 5: 15500 },
 };
+
+/**
+ * Правки цен из админки поверх эталона (пусто = эталонные цены калькулятора).
+ * Хранится в БД (таблица pricing), отдаётся через /api/pricing.
+ */
+export interface PricingOverride {
+  base?: Partial<Record<CalcCleaningType, Record<number, number>>>;
+  addons?: Record<string, number>; // addon id -> цена
+  ecoPercent?: number;
+}
+
+/** Базовая цена комнаты с учётом правок из админки. */
+export function basePrice(type: CalcCleaningType, rooms: number, o?: PricingOverride): number {
+  return o?.base?.[type]?.[rooms] ?? defaultBase[type]?.[rooms] ?? defaultBase.regular[rooms];
+}
+/** Цена доп.услуги с учётом правок из админки. */
+export function addonPrice(id: string, o?: PricingOverride): number {
+  return o?.addons?.[id] ?? addonMap.get(id)?.price ?? 0;
+}
+/** Стартовая цена «от» для типа уборки (1 комната). */
+export function priceFromType(type: CalcCleaningType, o?: PricingOverride): number {
+  return basePrice(type, 1, o);
+}
 
 /** Базовое время уборки в минутах по числу комнат (регулярная). */
 const BASE_MIN: Record<number, number> = { 1: 150, 2: 180, 3: 240, 4: 300, 5: 360 };
@@ -115,10 +138,10 @@ export function clampRooms(r: number) {
   return Math.max(1, Math.min(5, Math.round(r || 1)));
 }
 
-export function computeCalc(state: CalcState): CalcResult {
+export function computeCalc(state: CalcState, pricing?: PricingOverride): CalcResult {
   const rooms = clampRooms(state.rooms);
   const propMult = PROPERTY_MULT[state.propertyType] ?? 1;
-  const base = Math.round(((BASE[state.cleaningType]?.[rooms] ?? BASE.regular[rooms]) * propMult) / 10) * 10;
+  const base = Math.round((basePrice(state.cleaningType, rooms, pricing) * propMult) / 10) * 10;
 
   let addonsTotal = 0;
   let extraMin = 0;
@@ -130,12 +153,13 @@ export function computeCalc(state: CalcState): CalcResult {
       eco = true;
       continue;
     }
-    addonsTotal += a.price * qty;
+    addonsTotal += addonPrice(a.id, pricing) * qty;
     extraMin += (a.timeMin ?? 0) * qty;
   }
 
+  const ecoPct = pricing?.ecoPercent ?? ECO_PERCENT;
   const beforeEco = base + addonsTotal;
-  const ecoAmount = eco ? Math.round((beforeEco * ECO_PERCENT) / 100) : 0;
+  const ecoAmount = eco ? Math.round((beforeEco * ecoPct) / 100) : 0;
   const total = Math.round((beforeEco + ecoAmount) / 10) * 10;
 
   const minutes = Math.round((BASE_MIN[rooms] ?? 180) * TYPE_TIME_MULT[state.cleaningType] * propMult + extraMin);
@@ -160,10 +184,10 @@ export function calcTitle(rooms: number, propertyType: PropertyType = "apartment
 }
 
 /** Человекочитаемый список выбранных доп.услуг (для кабинета / заказа). */
-export function selectedAddonList(state: CalcState): { id: string; title: string; qty: number; price: number }[] {
+export function selectedAddonList(state: CalcState, pricing?: PricingOverride): { id: string; title: string; qty: number; price: number }[] {
   return calcAddons
     .filter((a) => (state.addons[a.id] ?? 0) > 0)
-    .map((a) => ({ id: a.id, title: a.title, qty: state.addons[a.id], price: a.mode === "percent" ? 0 : a.price * state.addons[a.id] }));
+    .map((a) => ({ id: a.id, title: a.title, qty: state.addons[a.id], price: a.mode === "percent" ? 0 : addonPrice(a.id, pricing) * state.addons[a.id] }));
 }
 
 /* ─── Draft persistence (localStorage) ──────────────────────── */

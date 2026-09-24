@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { SmsAuthModal } from "@/features/booking/sms-auth-modal";
 import { OAuthButtons } from "@/components/auth/oauth-buttons";
 import { useAuth, useRoleFlags } from "@/components/auth/auth-provider";
+import { usePricing } from "@/components/pricing/pricing-provider";
 import { CalculatorControls } from "@/features/calculator/calculator-controls";
 import { formatPrice, cn } from "@/lib/utils";
 import { activeCities } from "@/content/cities";
@@ -62,6 +63,7 @@ export default function BookingPage() {
   const router = useRouter();
   const { refresh: refreshAuth } = useAuth();
   const { canOrder, dashboardPath, loading: roleLoading } = useRoleFlags();
+  const pricing = usePricing();
 
   // Staff / executors don't order cleanings — bounce them to their panel.
   React.useEffect(() => {
@@ -141,7 +143,7 @@ export default function BookingPage() {
     saveCalcDraft({ ...state, name, phone, date, time, promo: promoInput, comment });
   }, [state, name, phone, date, time, promoInput, comment]);
 
-  const result = React.useMemo(() => computeCalc(state), [state]);
+  const result = React.useMemo(() => computeCalc(state, pricing), [state, pricing]);
   const surge = surgeForSlot(date, time);
   const surgeAmount = surge > 0 ? Math.round((result.total * surge) / 100) : 0;
   const grossTotal = result.total + surgeAmount;
@@ -156,7 +158,7 @@ export default function BookingPage() {
   const bonusApplied = useBonus ? Math.min(bonusBalance, maxBonus) : 0;
   const payable = afterPromo - bonusApplied;
 
-  const services = selectedAddonList(state);
+  const services = selectedAddonList(state, pricing);
 
   function startAuth() {
     if (phone.replace(/\D/g, "").length < 10) {

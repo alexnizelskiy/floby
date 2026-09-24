@@ -6,6 +6,7 @@ import { formatPrice, cn } from "@/lib/utils";
 import { formatDateCard, optionMap } from "@/lib/booking";
 import type { Role } from "@/lib/auth";
 import { GalleryManager } from "@/components/admin/gallery-manager";
+import { PricingManager } from "@/components/admin/pricing-manager";
 
 interface Analytics {
   revenue: { today: number; week: number; month: number; total: number };
@@ -72,7 +73,7 @@ interface Payout {
 export function AdminPanel({ role }: { role: Role }) {
   const isAdminRole = role === "admin";
   const [tab, setTab] = React.useState<
-    "analytics" | "bookings" | "users" | "promos" | "gallery" | "reviews" | "payouts"
+    "analytics" | "bookings" | "users" | "promos" | "gallery" | "reviews" | "payouts" | "prices"
   >(isAdminRole ? "analytics" : "bookings");
   const [bookings, setBookings] = React.useState<AdminBooking[]>([]);
   const [users, setUsers] = React.useState<AdminUser[]>([]);
@@ -220,6 +221,7 @@ export function AdminPanel({ role }: { role: Role }) {
               ["reviews", "Отзывы"],
               ["promos", `Промокоды (${promos.length})`],
               ["gallery", "Галерея"],
+              ["prices", "Цены"],
               ...(isAdminRole ? ([["payouts", "Выплаты"]] as const) : []),
             ] as [typeof tab, string][]
           ).map(([id, label]) => (
@@ -532,6 +534,8 @@ export function AdminPanel({ role }: { role: Role }) {
 
         {/* ── Gallery ── */}
         {tab === "gallery" && <GalleryManager />}
+
+        {tab === "prices" && <PricingManager />}
 
         {/* ── Reviews / quality ── */}
         {tab === "reviews" && (

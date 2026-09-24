@@ -7,7 +7,14 @@ import { CtaBand } from "@/components/sections/cta-band";
 import { OrderButton } from "@/components/forms/order-button";
 import { buildMetadata } from "@/lib/seo";
 import { formatPrice, cn } from "@/lib/utils";
-import { priceTiers, addons } from "@/content/prices";
+import { getPricing } from "@/lib/pricing";
+import {
+  roomTiers,
+  basePrice,
+  addonPrice,
+  calcAddons,
+  ECO_PERCENT,
+} from "@/lib/calc";
 
 export const metadata: Metadata = buildMetadata({
   title: "Цены на уборку в Ростове-на-Дону — floby",
@@ -17,7 +24,25 @@ export const metadata: Metadata = buildMetadata({
   path: "/prices",
 });
 
-export default function PricesPage() {
+function roomsLabel(rooms: number): string {
+  if (rooms >= 5) return "5+ комнат";
+  return `${rooms} ${rooms === 1 ? "комната" : "комнаты"}`;
+}
+
+export default async function PricesPage() {
+  const pricing = await getPricing();
+  const ecoPercent = pricing.ecoPercent ?? ECO_PERCENT;
+
+  // Дополнительные услуги — из конфигурации калькулятора (эталон + правки админки).
+  const extraAddons = calcAddons
+    .filter((a) => a.mode !== "percent")
+    .map((a) => ({
+      title: a.title,
+      unit: a.unit ?? "услуга",
+      price: addonPrice(a.id, pricing),
+      from: a.from,
+    }));
+
   return (
     <>
       <PageHeader
@@ -30,8 +55,8 @@ export default function PricesPage() {
       <Section>
         <SectionHeading
           eyebrow="Прайс-лист"
-          title="Стоимость по площади квартиры"
-          description="Указаны базовые цены. Точную стоимость с учётом ваших пожеланий рассчитает калькулятор ниже."
+          title="Стоимость по количеству комнат"
+          description="Указаны базовые цены (включён один санузел). Точную стоимость с учётом ваших пожеланий рассчитает калькулятор ниже."
         />
 
         <div className="mt-12 overflow-x-auto">
@@ -46,30 +71,33 @@ export default function PricesPage() {
               </tr>
             </thead>
             <tbody>
-              {priceTiers.map((t) => (
-                <tr key={t.id} className={cn("border-t border-border text-sm", t.popular && "bg-brand-50/50")}>
-                  <td className="px-5 py-4 font-semibold">
-                    {t.title}
-                    {t.popular && (
-                      <span className="ml-2 rounded-full bg-brand-100 px-2 py-0.5 text-xs font-semibold text-brand-700">
-                        Популярно
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-5 py-4 text-muted-foreground">{t.area}</td>
-                  <td className="px-5 py-4 font-semibold">{formatPrice(t.regular)}</td>
-                  <td className="px-5 py-4 font-semibold">{formatPrice(t.deep)}</td>
-                  <td className="px-5 py-4 text-right">
-                    <OrderButton size="sm" label="Заказать" />
-                  </td>
-                </tr>
-              ))}
+              {roomTiers.map((t) => {
+                const popular = t.rooms === 2;
+                return (
+                  <tr key={t.rooms} className={cn("border-t border-border text-sm", popular && "bg-brand-50/50")}>
+                    <td className="px-5 py-4 font-semibold">
+                      {roomsLabel(t.rooms)}
+                      {popular && (
+                        <span className="ml-2 rounded-full bg-brand-100 px-2 py-0.5 text-xs font-semibold text-brand-700">
+                          Популярно
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-5 py-4 text-muted-foreground">{t.area}</td>
+                    <td className="px-5 py-4 font-semibold">{formatPrice(basePrice("regular", t.rooms, pricing))}</td>
+                    <td className="px-5 py-4 font-semibold">{formatPrice(basePrice("general", t.rooms, pricing))}</td>
+                    <td className="px-5 py-4 text-right">
+                      <OrderButton size="sm" label="Заказать" />
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
         <p className="mt-4 text-sm text-muted-foreground">
-          Минимальный заказ — {formatPrice(1500)}. Цена может корректироваться для сильно загрязнённых помещений
-          и уборки после ремонта — мы всегда согласовываем её заранее.
+          Уборку после ремонта и сильно загрязнённые помещения считаем отдельно — стоимость всегда согласовываем заранее.
+          Эко-уборка гипоаллергенными средствами — надбавка +{ecoPercent}%.
         </p>
       </Section>
 
@@ -80,13 +108,15 @@ export default function PricesPage() {
           description="Любую из услуг можно добавить к уборке — стоимость фиксированная."
         />
         <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {addons.map((a) => (
+          {extraAddons.map((a) => (
             <div key={a.title} className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-card p-5">
               <span className="flex items-center gap-2.5 text-sm font-medium">
                 <Check className="size-4 shrink-0 text-brand-600" /> {a.title}
               </span>
               <span className="whitespace-nowrap text-sm font-bold">
-                {formatPrice(a.price)}<span className="font-normal text-muted-foreground">/{a.unit}</span>
+                {a.from && <span className="font-normal text-muted-foreground">от </span>}
+                {formatPrice(a.price)}
+                <span className="font-normal text-muted-foreground">/{a.unit}</span>
               </span>
             </div>
           ))}

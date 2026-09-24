@@ -116,6 +116,11 @@ CREATE TABLE IF NOT EXISTS payouts (
   created_by TEXT REFERENCES users(id) ON DELETE SET NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+CREATE TABLE IF NOT EXISTS pricing (
+  id TEXT PRIMARY KEY,
+  data JSONB NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
 -- idempotent migrations for existing databases
 ALTER TABLE users ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'client';
 ALTER TABLE users ADD COLUMN IF NOT EXISTS bonus_balance INT NOT NULL DEFAULT 0;

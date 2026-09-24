@@ -8,6 +8,7 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { RefCapture } from "@/components/referral/ref-capture";
 import { RegisterSW } from "@/components/pwa/register-sw";
 import { AuthProvider } from "@/components/auth/auth-provider";
+import { PricingProvider } from "@/components/pricing/pricing-provider";
 import { localBusinessJsonLd, websiteJsonLd } from "@/lib/jsonld";
 import { defaultMetadata } from "@/lib/seo";
 import { siteConfig } from "@/lib/site";
@@ -64,7 +65,9 @@ export default function RootLayout({
         <RefCapture />
         <RegisterSW />
         <AuthProvider>
-          <SiteShell>{children}</SiteShell>
+          <PricingProvider>
+            <SiteShell>{children}</SiteShell>
+          </PricingProvider>
         </AuthProvider>
       </body>
     </html>

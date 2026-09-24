@@ -30,7 +30,7 @@ export function ServiceHero({ service }: { service: Service }) {
         image={heroImage}
         imageAlt="Мытьё окон в квартире — floby"
         title="Мытьё окон в квартире"
-        subtitle="Закажите мытьё всех окон по единой цене"
+        subtitle="Закажите мытьё окон — считаем по створкам"
         priority
       >
         <WindowOrderForm className="max-w-[1000px]" />

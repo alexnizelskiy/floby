@@ -6,8 +6,18 @@ import { Badge } from "@/components/ui/badge";
 import { services } from "@/content/services";
 import { getIcon } from "@/lib/icons";
 import { formatPrice } from "@/lib/utils";
+import { getPricing } from "@/lib/pricing";
+import { SERVICE_CLEANING_TYPE, priceFromType, addonPrice } from "@/lib/calc";
+import type { Service } from "@/types";
 
-export function ServicesGrid() {
+export async function ServicesGrid() {
+  const pricing = await getPricing();
+  const priceFrom = (service: Service) => {
+    const type = SERVICE_CLEANING_TYPE[service.slug];
+    if (type) return priceFromType(type, pricing);
+    if (service.slug === "window-cleaning") return addonPrice("windows", pricing);
+    return service.priceFrom;
+  };
   return (
     <Section id="services" className="scroll-mt-24">
       <SectionHeading
@@ -43,7 +53,7 @@ export function ServicesGrid() {
                       {service.unit}
                     </span>
                     <p className="text-lg font-bold text-foreground">
-                      от {formatPrice(service.priceFrom)}
+                      от {formatPrice(priceFrom(service))}
                     </p>
                   </div>
                   <span className="grid size-10 place-items-center rounded-full border border-border text-muted-foreground transition-colors group-hover:border-brand-300 group-hover:bg-brand-50 group-hover:text-primary">

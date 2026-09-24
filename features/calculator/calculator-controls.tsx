@@ -7,11 +7,13 @@ import {
   roomTiers,
   calcCleaningTypes,
   calcAddons,
+  addonPrice,
   propertyTypes,
   type CalcState,
   type CalcAddon,
 } from "@/lib/calc";
 import { IncludedModal } from "@/features/calculator/included-modal";
+import { usePricing } from "@/components/pricing/pricing-provider";
 
 const VISIBLE_ADDONS = 9;
 
@@ -22,6 +24,7 @@ export function CalculatorControls({
   state: CalcState;
   onChange: (next: CalcState) => void;
 }) {
+  const pricing = usePricing();
   const [expanded, setExpanded] = React.useState(false);
   const [includedOpen, setIncludedOpen] = React.useState(false);
 
@@ -149,7 +152,14 @@ export function CalculatorControls({
 
         <div className="mt-4 divide-y divide-border rounded-2xl border border-border bg-white">
           {addonsShown.map((a) => (
-            <AddonRow key={a.id} addon={a} qty={state.addons[a.id] ?? 0} onQty={(q) => setAddon(a.id, q)} />
+            <AddonRow
+              key={a.id}
+              addon={a}
+              price={addonPrice(a.id, pricing)}
+              ecoPercent={pricing.ecoPercent ?? 40}
+              qty={state.addons[a.id] ?? 0}
+              onQty={(q) => setAddon(a.id, q)}
+            />
           ))}
         </div>
 
@@ -175,17 +185,21 @@ export function CalculatorControls({
 
 function AddonRow({
   addon,
+  price,
+  ecoPercent,
   qty,
   onQty,
 }: {
   addon: CalcAddon;
+  price: number;
+  ecoPercent: number;
   qty: number;
   onQty: (q: number) => void;
 }) {
   const active = qty > 0;
   const priceLabel = addon.mode === "percent"
-    ? "+40 % к стоимости"
-    : `${addon.from ? "от " : ""}${formatPrice(addon.price)}${addon.unit ? ` / ${addon.unit}` : ""}`;
+    ? `+${ecoPercent} % к стоимости`
+    : `${addon.from ? "от " : ""}${formatPrice(price)}${addon.unit ? ` / ${addon.unit}` : ""}`;
 
   return (
     <div className={cn("flex items-center gap-3 px-4 py-3.5 transition-colors sm:px-5", active && "bg-brand-50")}>
