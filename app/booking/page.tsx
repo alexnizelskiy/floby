@@ -9,6 +9,7 @@ import { SmsAuthModal } from "@/features/booking/sms-auth-modal";
 import { OAuthButtons } from "@/components/auth/oauth-buttons";
 import { useAuth, useRoleFlags } from "@/components/auth/auth-provider";
 import { usePricing } from "@/components/pricing/pricing-provider";
+import { ymGoal } from "@/components/analytics/yandex-metrika";
 import { CalculatorControls } from "@/features/calculator/calculator-controls";
 import { formatPrice, cn } from "@/lib/utils";
 import { activeCities } from "@/content/cities";
@@ -270,6 +271,7 @@ export default function BookingPage() {
       if (!res.ok) throw new Error();
       const { id } = (await res.json()) as { id: string };
       clearCalcDraft();
+      ymGoal("order_submit", { kind: "cleaning", total: grossTotal, payment });
 
       if (payment === "card") {
         const pay = await fetch("/api/payments/create", {
@@ -279,6 +281,7 @@ export default function BookingPage() {
         });
         const payData = (await pay.json()) as { ok: boolean; url?: string };
         if (payData.ok && payData.url) {
+          ymGoal("payment_started", { kind: "cleaning", total: grossTotal });
           window.location.href = payData.url;
           return;
         }

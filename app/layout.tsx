@@ -7,6 +7,7 @@ import { ThemeScript } from "@/components/theme/theme-toggle";
 import { JsonLd } from "@/components/seo/json-ld";
 import { RefCapture } from "@/components/referral/ref-capture";
 import { RegisterSW } from "@/components/pwa/register-sw";
+import { YandexMetrika } from "@/components/analytics/yandex-metrika";
 import { AuthProvider } from "@/components/auth/auth-provider";
 import { PricingProvider } from "@/components/pricing/pricing-provider";
 import { localBusinessJsonLd, websiteJsonLd } from "@/lib/jsonld";
@@ -62,6 +63,7 @@ export default function RootLayout({
       </head>
       <body className="flex min-h-dvh flex-col antialiased">
         <JsonLd data={[localBusinessJsonLd(), websiteJsonLd()]} />
+        <YandexMetrika />
         <RefCapture />
         <RegisterSW />
         <AuthProvider>

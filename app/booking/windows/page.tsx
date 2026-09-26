@@ -9,6 +9,7 @@ import { SmsAuthModal } from "@/features/booking/sms-auth-modal";
 import { OAuthButtons } from "@/components/auth/oauth-buttons";
 import { useAuth, useRoleFlags } from "@/components/auth/auth-provider";
 import { usePricing } from "@/components/pricing/pricing-provider";
+import { ymGoal } from "@/components/analytics/yandex-metrika";
 import { formatPrice, cn } from "@/lib/utils";
 import { activeCities } from "@/content/cities";
 import { generateDates, generateTimes, formatDateLong } from "@/lib/booking";
@@ -167,6 +168,7 @@ export default function WindowBookingPage() {
       if (!res.ok) throw new Error();
       const { id } = (await res.json()) as { id: string };
       clearWindowDraft();
+      ymGoal("order_submit", { kind: "windows", total, payment });
 
       if (payment === "card") {
         const pay = await fetch("/api/payments/create", {
@@ -176,6 +178,7 @@ export default function WindowBookingPage() {
         });
         const payData = (await pay.json()) as { ok: boolean; url?: string };
         if (payData.ok && payData.url) {
+          ymGoal("payment_started", { kind: "windows", total });
           window.location.href = payData.url;
           return;
         }
