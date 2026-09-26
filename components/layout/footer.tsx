@@ -80,6 +80,9 @@ export function Footer() {
             <Link href="/privacy" className="hover:text-foreground">
               Политика конфиденциальности
             </Link>
+            <Link href="/offer" className="hover:text-foreground">
+              Оферта
+            </Link>
             <Link href="/requisites" className="hover:text-foreground">
               Реквизиты
             </Link>

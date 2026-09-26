@@ -155,7 +155,7 @@ export function HomeCalculator() {
 
           <p className="text-center text-xs text-muted-foreground">
             Нажимая кнопку, вы принимаете{" "}
-            <Link href="/help" className="underline underline-offset-2 hover:text-foreground">условия соглашения</Link>{" "}
+            <Link href="/offer" className="underline underline-offset-2 hover:text-foreground">условия оферты</Link>{" "}
             и даёте согласие на{" "}
             <Link href="/privacy" className="underline underline-offset-2 hover:text-foreground">обработку персональных данных</Link>.
           </p>

@@ -19,6 +19,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/work-with-us",
     "/cities",
     "/privacy",
+    "/offer",
     "/requisites",
   ];
 

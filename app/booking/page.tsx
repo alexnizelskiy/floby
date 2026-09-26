@@ -534,7 +534,7 @@ export default function BookingPage() {
               </Button>
               <p className="text-center text-xs text-muted-foreground">
                 Нажимая кнопку, вы принимаете{" "}
-                <Link href="/help" className="underline underline-offset-2 hover:text-foreground">условия соглашения</Link>{" "}
+                <Link href="/offer" className="underline underline-offset-2 hover:text-foreground">условия оферты</Link>{" "}
                 и{" "}
                 <Link href="/privacy" className="underline underline-offset-2 hover:text-foreground">политику конфиденциальности</Link>.
               </p>

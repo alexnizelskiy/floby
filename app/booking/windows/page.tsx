@@ -389,7 +389,7 @@ export default function WindowBookingPage() {
               </Button>
               <p className="text-center text-xs text-muted-foreground">
                 Нажимая кнопку, вы принимаете{" "}
-                <Link href="/help" className="underline underline-offset-2 hover:text-foreground">условия</Link>{" "}
+                <Link href="/offer" className="underline underline-offset-2 hover:text-foreground">оферту</Link>{" "}
                 и{" "}
                 <Link href="/privacy" className="underline underline-offset-2 hover:text-foreground">политику</Link>.
               </p>
