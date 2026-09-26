@@ -11,8 +11,6 @@ import { CalculatorSection } from "@/components/sections/calculator-section";
 import { ReviewsSlider } from "@/components/sections/reviews-slider";
 import { FaqSection } from "@/components/sections/faq-section";
 import { CtaBand } from "@/components/sections/cta-band";
-import { JsonLd } from "@/components/seo/json-ld";
-import { localBusinessJsonLd } from "@/lib/jsonld";
 import { buildMetadata } from "@/lib/seo";
 import { homeFaq } from "@/content/faq";
 
@@ -29,10 +27,12 @@ export const metadata: Metadata = buildMetadata({
   path: "/",
 });
 
+// Страховка: раз в час; правки цен из админки инвалидируют главную мгновенно.
+export const revalidate = 3600;
+
 export default function HomePage() {
   return (
     <>
-      <JsonLd data={localBusinessJsonLd()} />
       <Hero />
       <Reasons />
       <ServicesGrid />

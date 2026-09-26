@@ -20,7 +20,8 @@ export function buildMetadata({
   noIndex,
 }: PageSeoInput): Metadata {
   const url = new URL(path, siteConfig.url).toString();
-  const ogImages = images ?? ["/og/default.jpg"];
+  // По умолчанию — сгенерированная картинка app/opengraph-image.tsx.
+  const ogImages = images ?? ["/opengraph-image"];
 
   return {
     // absolute: SEO titles are already complete, skip the "%s — floby" template

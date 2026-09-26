@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { getCurrentUser, isStaff } from "@/lib/auth";
 import { getPricing, savePricing } from "@/lib/pricing";
 import { defaultBase, calcAddons, calcCleaningTypes, roomTiers, ECO_PERCENT, type PricingOverride } from "@/lib/calc";
@@ -56,5 +57,10 @@ export async function PATCH(request: Request) {
   }
 
   await savePricing(clean);
+
+  // Обновляем статические витрины, которые читают цены (калькулятор — клиентский, обновляется сам).
+  revalidatePath("/");
+  revalidatePath("/prices");
+
   return NextResponse.json({ ok: true });
 }

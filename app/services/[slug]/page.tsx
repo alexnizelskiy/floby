@@ -67,6 +67,7 @@ export default async function ServicePage({
         title={`Вопросы про услугу «${service.shortTitle}»`}
         description="Не нашли ответ? Напишите нам — подскажем."
         showHelpLink={false}
+        withSchema={false}
       />
       <CtaBand
         title={`Закажите ${service.shortTitle.toLowerCase()} в floby`}

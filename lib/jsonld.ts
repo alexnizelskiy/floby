@@ -14,7 +14,7 @@ export function localBusinessJsonLd() {
     telephone: siteConfig.contacts.phone,
     email: siteConfig.contacts.email,
     priceRange: "₽₽",
-    image: `${siteConfig.url}/og/default.jpg`,
+    image: `${siteConfig.url}/opengraph-image`,
     address: {
       "@type": "PostalAddress",
       addressLocality: siteConfig.geo.city,
@@ -30,7 +30,7 @@ export function localBusinessJsonLd() {
     },
     areaServed: { "@type": "City", name: siteConfig.geo.city },
     openingHours: "Mo-Su 08:00-22:00",
-    sameAs: [siteConfig.social.vk].filter(Boolean),
+    sameAs: [siteConfig.social.vk, siteConfig.contacts.telegram, siteConfig.contacts.whatsapp].filter(Boolean),
   };
 }
 
@@ -46,10 +46,11 @@ export function serviceJsonLd(service: Service) {
     provider: { "@type": "CleaningService", name: siteConfig.name, "@id": `${siteConfig.url}#business` },
     areaServed: { "@type": "City", name: siteConfig.geo.city },
     offers: {
-      "@type": "Offer",
-      price: service.priceFrom,
+      "@type": "AggregateOffer",
+      lowPrice: service.priceFrom,
       priceCurrency: "RUB",
       availability: "https://schema.org/InStock",
+      offeredBy: { "@type": "CleaningService", "@id": `${siteConfig.url}#business` },
     },
   };
 }

@@ -24,6 +24,9 @@ export const metadata: Metadata = buildMetadata({
   path: "/prices",
 });
 
+// Страховка: раз в час; правки цен из админки инвалидируют страницу мгновенно.
+export const revalidate = 3600;
+
 function roomsLabel(rooms: number): string {
   if (rooms >= 5) return "5+ комнат";
   return `${rooms} ${rooms === 1 ? "комната" : "комнаты"}`;

@@ -4,8 +4,6 @@ import { Phone, Mail, Send, Clock, MapPin, MessageCircle } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { Section } from "@/components/ui/section";
 import { LeadForm } from "@/components/forms/lead-form";
-import { JsonLd } from "@/components/seo/json-ld";
-import { localBusinessJsonLd } from "@/lib/jsonld";
 import { buildMetadata } from "@/lib/seo";
 import { siteConfig } from "@/lib/site";
 
@@ -91,8 +89,6 @@ export default function ContactsPage() {
           </div>
         </div>
       </Section>
-
-      <JsonLd data={localBusinessJsonLd()} />
     </>
   );
 }
