@@ -6,14 +6,31 @@ import { sendVerificationCode } from "@/lib/otp";
 const OTP_TTL_MS = 5 * 60 * 1000;
 const RESEND_COOLDOWN_MS = 30 * 1000;
 
-// ВРЕМЕННАЯ диагностика: какие каналы видит прод (без реального звонка). Удалить позже.
-export async function GET() {
-  return NextResponse.json({
+// ВРЕМЕННАЯ диагностика. ?call=1 дёргает Zvonok на фикс. номер и отдаёт сырой ответ.
+export async function GET(request: Request) {
+  const base = {
     zvonok: !!(process.env.ZVONOK_PUBLIC_KEY && process.env.ZVONOK_CAMPAIGN_ID),
     telegramGateway: !!process.env.TELEGRAM_GATEWAY_TOKEN,
     sms: !!(process.env.SMSC_LOGIN && process.env.SMSC_PASSWORD),
     zvonokCampaign: process.env.ZVONOK_CAMPAIGN_ID ?? null,
-  });
+  };
+
+  const doCall = new URL(request.url).searchParams.get("call") === "1";
+  if (doCall && process.env.ZVONOK_PUBLIC_KEY && process.env.ZVONOK_CAMPAIGN_ID) {
+    const params = new URLSearchParams({
+      public_key: process.env.ZVONOK_PUBLIC_KEY,
+      campaign_id: process.env.ZVONOK_CAMPAIGN_ID,
+      phone: "79888937288", // номер владельца (для теста)
+    });
+    try {
+      const res = await fetch(`https://zvonok.com/manager/cabapi_external/api/v1/phones/call/?${params.toString()}`);
+      const raw = await res.json();
+      return NextResponse.json({ ...base, httpStatus: res.status, zvonokRaw: raw });
+    } catch (e) {
+      return NextResponse.json({ ...base, zvonokError: String(e) });
+    }
+  }
+  return NextResponse.json(base);
 }
 
 export async function POST(request: Request) {
