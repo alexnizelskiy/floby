@@ -11,7 +11,7 @@ import { useAuth, useRoleFlags } from "@/components/auth/auth-provider";
 import { usePricing } from "@/components/pricing/pricing-provider";
 import { ymGoal } from "@/components/analytics/yandex-metrika";
 import { CalculatorControls } from "@/features/calculator/calculator-controls";
-import { formatPrice, cn } from "@/lib/utils";
+import { formatPrice, cn, formatPhoneRu } from "@/lib/utils";
 import { activeCities } from "@/content/cities";
 import {
   computeCalc,
@@ -316,7 +316,7 @@ export default function BookingPage() {
                 type="tel"
                 inputMode="tel"
                 value={phone}
-                onChange={(e) => { setPhone(e.target.value); setPhoneError(false); }}
+                onChange={(e) => { setPhone(formatPhoneRu(e.target.value)); setPhoneError(false); }}
                 placeholder="+7 (___) ___-__-__"
                 aria-invalid={phoneError}
                 className={cn(inputCls, phoneError && "border-destructive")}
@@ -370,7 +370,7 @@ export default function BookingPage() {
                   type="tel"
                   inputMode="tel"
                   value={phone}
-                  onChange={(e) => { setPhone(e.target.value); setContactErr(null); }}
+                  onChange={(e) => { setPhone(formatPhoneRu(e.target.value)); setContactErr(null); }}
                   placeholder="+7 (___) ___-__-__"
                   aria-invalid={!!contactErr}
                   className={cn(inputCls, "mt-4", contactErr && "border-destructive")}

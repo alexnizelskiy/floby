@@ -10,7 +10,7 @@ import { OAuthButtons } from "@/components/auth/oauth-buttons";
 import { useAuth, useRoleFlags } from "@/components/auth/auth-provider";
 import { usePricing } from "@/components/pricing/pricing-provider";
 import { ymGoal } from "@/components/analytics/yandex-metrika";
-import { formatPrice, cn } from "@/lib/utils";
+import { formatPrice, cn, formatPhoneRu } from "@/lib/utils";
 import { activeCities } from "@/content/cities";
 import { generateDates, generateTimes, formatDateLong } from "@/lib/booking";
 import {
@@ -213,7 +213,7 @@ export default function WindowBookingPage() {
                 type="tel"
                 inputMode="tel"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(e) => setPhone(formatPhoneRu(e.target.value))}
                 placeholder="+7 (___) ___-__-__"
                 className={inputCls}
               />
@@ -262,7 +262,7 @@ export default function WindowBookingPage() {
                   type="tel"
                   inputMode="tel"
                   value={phone}
-                  onChange={(e) => { setPhone(e.target.value); setContactErr(null); }}
+                  onChange={(e) => { setPhone(formatPhoneRu(e.target.value)); setContactErr(null); }}
                   placeholder="+7 (___) ___-__-__"
                   aria-invalid={!!contactErr}
                   className={cn(inputCls, "mt-4", contactErr && "border-destructive")}

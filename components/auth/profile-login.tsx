@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { SmsAuthModal } from "@/features/booking/sms-auth-modal";
 import { OAuthButtons } from "@/components/auth/oauth-buttons";
 import { useAuth } from "@/components/auth/auth-provider";
+import { formatPhoneRu } from "@/lib/utils";
 
 /** Login gate for the cabinet: phone → SMS code → session. */
 export function ProfileLogin() {
@@ -36,8 +37,8 @@ export function ProfileLogin() {
         <div>
           <h1 className="text-2xl font-bold">Вход в личный кабинет</h1>
           <p className="mt-2 text-muted-foreground">
-            Введите номер телефона — пришлём код для входа. Регистрация произойдёт
-            автоматически.
+            Введите номер телефона — подтвердим его звонком или кодом. Регистрация
+            произойдёт автоматически.
           </p>
         </div>
         <form onSubmit={submit} className="flex w-full flex-col gap-3 text-left">
@@ -50,7 +51,7 @@ export function ProfileLogin() {
               placeholder="+7 (___) ___-__-__"
               value={phone}
               onChange={(e) => {
-                setPhone(e.target.value);
+                setPhone(formatPhoneRu(e.target.value));
                 setError(false);
               }}
               aria-invalid={error}
@@ -58,7 +59,7 @@ export function ProfileLogin() {
             {error && <p className="text-sm text-destructive">Введите корректный номер</p>}
           </div>
           <Button type="submit" size="lg" className="w-full">
-            Получить код
+            Продолжить
           </Button>
         </form>
 

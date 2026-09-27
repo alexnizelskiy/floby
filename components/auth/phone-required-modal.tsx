@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Loader2, ShieldCheck, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn, formatPhoneRu } from "@/lib/utils";
 import { useAuth } from "@/components/auth/auth-provider";
 
 const fieldCls =
@@ -123,7 +123,7 @@ export function PhoneRequiredModal() {
                 inputMode="tel"
                 value={phone}
                 onChange={(e) => {
-                  setPhone(e.target.value);
+                  setPhone(formatPhoneRu(e.target.value));
                   setError(null);
                 }}
                 placeholder="+7 (___) ___-__-__"

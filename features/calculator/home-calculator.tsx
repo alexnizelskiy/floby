@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronDown } from "lucide-react";
-import { cn, formatPrice } from "@/lib/utils";
+import { cn, formatPrice, formatPhoneRu } from "@/lib/utils";
 import { CalculatorControls } from "@/features/calculator/calculator-controls";
 import {
   computeCalc,
@@ -109,7 +109,7 @@ export function HomeCalculator() {
                 type="tel"
                 inputMode="tel"
                 value={phone}
-                onChange={(e) => { setPhone(e.target.value); setErrors((x) => ({ ...x, phone: false })); }}
+                onChange={(e) => { setPhone(formatPhoneRu(e.target.value)); setErrors((x) => ({ ...x, phone: false })); }}
                 placeholder="+7 (___) ___-__-__"
                 aria-invalid={errors.phone}
                 className={cn(fieldCls, errors.phone && "border-destructive")}
