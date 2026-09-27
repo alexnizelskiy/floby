@@ -32,6 +32,7 @@ export function PhoneRequiredModal() {
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [devCode, setDevCode] = React.useState<string | null>(null);
+  const [channel, setChannel] = React.useState<string | null>(null);
   const [seconds, setSeconds] = React.useState(0);
 
   React.useEffect(() => {
@@ -60,6 +61,7 @@ export function PhoneRequiredModal() {
       const data = await res.json();
       if (res.ok && data.ok) {
         if (data.devCode) setDevCode(String(data.devCode));
+        if (data.channel) setChannel(String(data.channel));
         setStep("code");
         setSeconds(30);
       } else if (res.status === 429) {
@@ -137,6 +139,18 @@ export function PhoneRequiredModal() {
 
           {step === "code" && (
             <>
+              {channel === "call" && (
+                <p className="text-sm text-muted-foreground">
+                  Вам сейчас <b>позвонит робот</b> — отвечать не нужно. Введите <b>последние 4 цифры</b> номера, с
+                  которого поступит звонок.
+                </p>
+              )}
+              {channel === "telegram" && (
+                <p className="text-sm text-muted-foreground">Код отправлен в <b>Telegram</b> на номер {phone}.</p>
+              )}
+              {channel === "sms" && (
+                <p className="text-sm text-muted-foreground">Код отправлен в <b>SMS</b> на номер {phone}.</p>
+              )}
               {devCode && (
                 <div className="flex items-center gap-2 rounded-xl bg-brand-50 px-3.5 py-2.5 text-sm text-brand-800">
                   <ShieldCheck className="size-4 shrink-0" />

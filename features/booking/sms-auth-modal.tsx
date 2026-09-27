@@ -27,6 +27,7 @@ export function SmsAuthModal({ open, phone, onClose, onVerified }: SmsAuthModalP
   const [checking, setChecking] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [devCode, setDevCode] = React.useState<string | null>(null);
+  const [channel, setChannel] = React.useState<string | null>(null);
   const [seconds, setSeconds] = React.useState(0);
   const inputRef = React.useRef<HTMLInputElement>(null);
 
@@ -42,6 +43,7 @@ export function SmsAuthModal({ open, phone, onClose, onVerified }: SmsAuthModalP
       const data = await res.json();
       if (res.ok && data.ok) {
         if (data.devCode) setDevCode(String(data.devCode));
+        if (data.channel) setChannel(String(data.channel));
         setSeconds(30);
       } else if (res.status === 429) {
         setSeconds(30); // code already sent recently — still valid
@@ -100,10 +102,18 @@ export function SmsAuthModal({ open, phone, onClose, onVerified }: SmsAuthModalP
       onClose={onClose}
       title="Подтвердите номер"
       description={
-        <>
-          Мы отправили код в СМС на номер{" "}
-          <span className="font-semibold text-foreground">{phone}</span>
-        </>
+        channel === "call" ? (
+          <>
+            Вам позвонит робот на номер{" "}
+            <span className="font-semibold text-foreground">{phone}</span>. Отвечать не нужно — введите последние 4
+            цифры номера, с которого поступит звонок.
+          </>
+        ) : (
+          <>
+            Мы отправили код{channel === "telegram" ? " в Telegram" : channel === "sms" ? " в SMS" : ""} на номер{" "}
+            <span className="font-semibold text-foreground">{phone}</span>
+          </>
+        )
       }
     >
       <div className="flex flex-col gap-4">
