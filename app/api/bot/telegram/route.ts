@@ -1,29 +1,6 @@
 import { NextResponse } from "next/server";
-import { query } from "@/lib/db";
 import { processUpdate } from "@/lib/bot";
 import { parseTelegramUpdate, sendTelegram, answerCallback } from "@/lib/bot/telegram";
-
-// ВРЕМЕННАЯ диагностика окружения в проде (только булевы флаги, без значений).
-// Удалить после настройки бота.
-export async function GET() {
-  let dbOk = false;
-  let botSessionsOk = false;
-  try {
-    await query("SELECT 1");
-    dbOk = true;
-    await query("SELECT count(*) FROM bot_sessions");
-    botSessionsOk = true;
-  } catch {
-    /* оставляем false */
-  }
-  return NextResponse.json({
-    hasBotToken: !!process.env.TELEGRAM_BOT_TOKEN,
-    hasChatId: !!process.env.TELEGRAM_CHAT_ID,
-    hasWebhookSecret: !!process.env.TELEGRAM_WEBHOOK_SECRET,
-    dbOk,
-    botSessionsOk,
-  });
-}
 
 // Telegram шлёт апдейты сюда. URL регистрируется через setWebhook.
 export async function POST(request: Request) {

@@ -60,6 +60,9 @@ export interface BotState {
   comment?: string;
   phone?: string;
   name?: string;
+  /** Запомненный номер/имя — переживают reset(), чтобы не спрашивать каждый раз. */
+  savedPhone?: string;
+  savedName?: string;
 }
 
 export const initialState: BotState = { step: "idle" };

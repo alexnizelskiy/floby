@@ -33,14 +33,16 @@ function rub(n: number): string {
 
 /* ─── Экраны ──────────────────────────────────────────────── */
 
-function greeting(): OutMessage {
+function greeting(state?: BotState): OutMessage {
+  const keyboard = [
+    [{ text: "🧽 Заказать уборку", data: "order" }],
+    [{ text: "📋 Мои заказы", data: "list" }],
+  ];
+  if (state?.savedPhone) keyboard.push([{ text: "📱 Сменить номер", data: "resetphone" }]);
   return {
     text: "Привет! Я бот floby 🧹\nПомогу заказать уборку в Ростове-на-Дону за минуту.",
     removeKeyboard: true,
-    keyboard: [
-      [{ text: "🧽 Заказать уборку", data: "order" }],
-      [{ text: "📋 Мои заказы", data: "list" }],
-    ],
+    keyboard,
   };
 }
 
@@ -166,8 +168,20 @@ export interface FlowResult {
   messages: OutMessage[];
 }
 
-function reset(): BotState {
-  return { ...initialState };
+/** Сброс диалога с сохранением запомненного номера. */
+function reset(state?: BotState): BotState {
+  return { ...initialState, savedPhone: state?.savedPhone, savedName: state?.savedName };
+}
+
+/** После комментария: если номер уже запомнен — сразу к подтверждению. */
+async function afterComment(state: BotState): Promise<FlowResult> {
+  if (state.savedPhone) {
+    const st: BotState = { ...state, phone: state.savedPhone, name: state.name ?? state.savedName };
+    const pricing = await getPricing();
+    const total = await botOrderTotal(st);
+    return { state: { ...st, step: "confirm" }, messages: [confirmScreen(st, total, pricing)] };
+  }
+  return { state: { ...state, step: "contact" }, messages: [askContact("order")] };
 }
 
 /** Обработать один вход и вернуть следующее состояние + ответы. */
@@ -178,7 +192,8 @@ export async function handleFlow(
 ): Promise<FlowResult> {
   // Глобальные команды
   if (input.kind === "command" || (input.kind === "text" && /^\/start\b/.test(input.value))) {
-    return { state: reset(), messages: [greeting()] };
+    const s = reset(state);
+    return { state: s, messages: [greeting(s)] };
   }
 
   if (input.kind === "callback") {
@@ -189,9 +204,19 @@ export async function handleFlow(
 
     switch (key) {
       case "order":
-        return { state: { step: "type" }, messages: [askType()] };
-      case "list":
-        return { state: { step: "list_contact" }, messages: [askContact("list")] };
+        return { state: { ...reset(state), step: "type" }, messages: [askType()] };
+      case "list": {
+        if (state.savedPhone) {
+          const list = await listOrdersByPhone(state.savedPhone);
+          const s = reset(state);
+          return { state: s, messages: [{ text: list }, greeting(s)] };
+        }
+        return { state: { ...reset(state), step: "list_contact" }, messages: [askContact("list")] };
+      }
+      case "resetphone": {
+        const s: BotState = { step: "idle" }; // забываем номер
+        return { state: s, messages: [{ text: "Номер сброшен. При следующем заказе спрошу его снова." }, greeting(s)] };
+      }
       case "type":
         return { state: { ...state, step: "rooms", cleaningType: value as BotState["cleaningType"] }, messages: [askRooms()] };
       case "rooms":
@@ -213,10 +238,13 @@ export async function handleFlow(
       case "time":
         return { state: { ...state, step: "address", time: value }, messages: [askAddress()] };
       case "comment":
-        if (value === "skip") return { state: { ...state, step: "contact", comment: "" }, messages: [askContact("order")] };
+        if (value === "skip") return afterComment({ ...state, comment: "" });
         break;
       case "confirm": {
-        if (value === "no") return { state: reset(), messages: [{ text: "Заказ отменён." }, greeting()] };
+        if (value === "no") {
+          const s = reset(state);
+          return { state: s, messages: [{ text: "Заказ отменён." }, greeting(s)] };
+        }
         if ((value === "pay" || value === "cash") && state.step === "confirm" && state.phone) {
           const payment = value === "pay" ? "card" : "cash";
           const { id, total } = await createBotOrder(platform, state, payment);
@@ -237,7 +265,8 @@ export async function handleFlow(
               ].join("\n"),
               removeKeyboard: true,
             };
-            return { state: reset(), messages: [done, greeting()] };
+            const s = reset(state);
+            return { state: s, messages: [done, greeting(s)] };
           }
 
           // Оплата картой — ссылка ЮKassa
@@ -262,9 +291,10 @@ export async function handleFlow(
                 removeKeyboard: true,
                 keyboard: [[{ text: `💳 Оплатить ${rub(total)}`, url: pay.url }]],
               };
-          return { state: reset(), messages: [done, greeting()] };
+          const s = reset(state);
+          return { state: s, messages: [done, greeting(s)] };
         }
-        return { state, messages: [greeting()] };
+        return { state, messages: [greeting(state)] };
       }
     }
     // callback не совпал с текущим шагом — мягко подсказываем
@@ -272,10 +302,18 @@ export async function handleFlow(
   }
 
   if (input.kind === "contact") {
-    const st: BotState = { ...state, phone: input.phone, name: input.name ?? state.name };
+    // Запоминаем номер и имя на будущее
+    const st: BotState = {
+      ...state,
+      phone: input.phone,
+      name: input.name ?? state.name,
+      savedPhone: input.phone,
+      savedName: input.name ?? state.savedName,
+    };
     if (state.step === "list_contact") {
       const list = await listOrdersByPhone(input.phone);
-      return { state: reset(), messages: [{ text: list, removeKeyboard: true }, greeting()] };
+      const s = reset(st);
+      return { state: s, messages: [{ text: list, removeKeyboard: true }, greeting(s)] };
     }
     // основной сценарий: телефон → подтверждение
     const pricing = await getPricing();
@@ -290,13 +328,13 @@ export async function handleFlow(
       return { state: { ...state, step: "comment", address }, messages: [askComment()] };
     }
     if (state.step === "comment") {
-      return { state: { ...state, step: "contact", comment: input.value.trim() }, messages: [askContact("order")] };
+      return afterComment({ ...state, comment: input.value.trim() });
     }
     // неожиданный текст — повторяем текущий экран
     return { state, messages: [resendCurrent(state)] };
   }
 
-  return { state, messages: [greeting()] };
+  return { state, messages: [greeting(state)] };
 }
 
 /** Повторно показать экран текущего шага (когда пришло что-то не то). */
