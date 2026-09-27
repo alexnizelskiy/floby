@@ -20,7 +20,7 @@ export async function sendZvonokFlashCall(
   });
 
   try {
-    const res = await fetch(`https://zvonok.com/manager/cabapi_external/api/v1/phones/call/?${params.toString()}`);
+    const res = await fetch(`https://zvonok.com/manager/cabapi_external/api/v1/phones/flashcall/?${params.toString()}`);
     const raw = (await res.json()) as Record<string, unknown>;
     // Логируем сырой ответ (виден в Vercel Function Logs) — для отладки формата.
     console.info("[floby][zvonok] response:", JSON.stringify(raw));

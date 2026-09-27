@@ -23,7 +23,7 @@ export async function GET(request: Request) {
       phone: "79888937288", // номер владельца (для теста)
     });
     try {
-      const res = await fetch(`https://zvonok.com/manager/cabapi_external/api/v1/phones/call/?${params.toString()}`);
+      const res = await fetch(`https://zvonok.com/manager/cabapi_external/api/v1/phones/flashcall/?${params.toString()}`);
       const raw = await res.json();
       return NextResponse.json({ ...base, httpStatus: res.status, zvonokRaw: raw });
     } catch (e) {
