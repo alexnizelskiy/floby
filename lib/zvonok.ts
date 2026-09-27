@@ -22,8 +22,6 @@ export async function sendZvonokFlashCall(
   try {
     const res = await fetch(`https://zvonok.com/manager/cabapi_external/api/v1/phones/flashcall/?${params.toString()}`);
     const raw = (await res.json()) as Record<string, unknown>;
-    // Логируем сырой ответ (виден в Vercel Function Logs) — для отладки формата.
-    console.info("[floby][zvonok] response:", JSON.stringify(raw));
 
     if (raw.status === "ok") {
       const pin = extractPincode(raw);
@@ -31,7 +29,9 @@ export async function sendZvonokFlashCall(
       return { ok: false, error: "no_pincode" };
     }
     const d = raw.data;
-    return { ok: false, error: typeof d === "string" ? d : "call_failed" };
+    const msg = typeof d === "string" ? d : "call_failed";
+    console.error("[floby][zvonok] error:", msg); // без pincode
+    return { ok: false, error: msg };
   } catch {
     return { ok: false, error: "request_failed" };
   }
