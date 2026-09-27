@@ -213,3 +213,36 @@ export async function upsertUserByOAuth(input: {
   if (await promoteIfAdminEmail(userId, row.email ?? email)) row.role = "admin";
   return { user: rowToUser(row), isNew };
 }
+
+/**
+ * Слить аккаунт `fromId` в `toId`: переносим заказы, бонусы, отзывы, OAuth-связи
+ * и удаляем исходный. Используется, когда OAuth-пользователь подтверждает телефон,
+ * уже принадлежащий другому аккаунту (например, созданному ботом по номеру).
+ * Не транзакционно — операция редкая; порядок: сначала переносим детей, потом удаляем.
+ */
+export async function mergeUserInto(fromId: string, toId: string): Promise<void> {
+  if (fromId === toId) return;
+  await query("UPDATE bookings SET user_id = $1 WHERE user_id = $2", [toId, fromId]);
+  await query("UPDATE bookings SET assignee_id = $1 WHERE assignee_id = $2", [toId, fromId]);
+  await query("UPDATE bonus_ledger SET user_id = $1 WHERE user_id = $2", [toId, fromId]);
+  await query("UPDATE reviews SET user_id = $1 WHERE user_id = $2", [toId, fromId]);
+  await query("UPDATE reviews SET executor_id = $1 WHERE executor_id = $2", [toId, fromId]);
+  await query("UPDATE gift_certificates SET buyer_id = $1 WHERE buyer_id = $2", [toId, fromId]);
+  await query("UPDATE gift_certificates SET redeemed_by = $1 WHERE redeemed_by = $2", [toId, fromId]);
+  await query("UPDATE user_oauth_providers SET user_id = $1 WHERE user_id = $2", [toId, fromId]);
+  await query("UPDATE gallery SET created_by = $1 WHERE created_by = $2", [toId, fromId]);
+  await query("UPDATE payouts SET executor_id = $1 WHERE executor_id = $2", [toId, fromId]);
+  await query("UPDATE users SET referred_by = $1 WHERE referred_by = $2", [toId, fromId]);
+  await query("UPDATE users SET preferred_executor_id = $1 WHERE preferred_executor_id = $2", [toId, fromId]);
+  // переносим накопленный бонус и недостающие поля профиля
+  await query(
+    `UPDATE users t SET
+       bonus_balance = t.bonus_balance + f.bonus_balance,
+       name = COALESCE(t.name, f.name),
+       email = COALESCE(t.email, f.email),
+       avatar_url = COALESCE(t.avatar_url, f.avatar_url)
+     FROM users f WHERE t.id = $1 AND f.id = $2`,
+    [toId, fromId]
+  );
+  await query("DELETE FROM users WHERE id = $1", [fromId]); // каскадом удалит сессии исходного
+}
