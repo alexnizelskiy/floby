@@ -220,7 +220,7 @@ export default function WindowBookingPage() {
               <Button size="lg" onClick={startAuth}>Получить код</Button>
             </div>
             <div className="mt-5">
-              <OAuthButtons onSuccess={() => { setAuthed(true); refreshAuth(); }} />
+              <div hidden={smsOpen} className="w-full"><OAuthButtons onSuccess={() => { setAuthed(true); refreshAuth(); }} /></div>
             </div>
           </div>
         </div>

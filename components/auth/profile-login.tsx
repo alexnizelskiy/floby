@@ -63,7 +63,10 @@ export function ProfileLogin() {
           </Button>
         </form>
 
-        <OAuthButtons onSuccess={() => { refresh(); router.refresh(); }} />
+        {/* Виджеты VK/Яндекс рисуются с высоким z-index — прячем их, пока открыто окно кода */}
+        <div hidden={smsOpen} className="w-full">
+          <OAuthButtons onSuccess={() => { refresh(); router.refresh(); }} />
+        </div>
       </div>
 
       <SmsAuthModal
