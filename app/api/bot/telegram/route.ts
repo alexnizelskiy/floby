@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     if (parsed.callbackQueryId) await answerCallback(parsed.callbackQueryId);
 
     const messages = await processUpdate("telegram", parsed.chatId, parsed.input);
-    await sendTelegram(parsed.chatId, messages);
+    await sendTelegram(parsed.chatId, messages, parsed.messageId);
   } catch (err) {
     console.error("[bot:tg] webhook error", err);
   }

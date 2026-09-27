@@ -8,13 +8,14 @@ import {
   calcCleaningTypes,
   roomTiers,
   propertyTypes,
-  computeCalc,
-  calcTitle,
-  type CalcState,
+  calcAddons,
+  addonPrice,
+  selectedAddonList,
+  type PricingOverride,
 } from "@/lib/calc";
 import { getPricing } from "@/lib/pricing";
 import { generateDates, generateTimes, formatDateShort, formatDateCard } from "@/lib/booking";
-import { createBotOrder, listOrdersByPhone } from "./order";
+import { createBotOrder, createBotPaymentLink, botOrderTotal, listOrdersByPhone } from "./order";
 import {
   type BotButton,
   type BotPlatform,
@@ -64,6 +65,25 @@ function askProperty(): OutMessage {
   };
 }
 
+const ADDON_LIST = calcAddons.filter((a) => a.mode !== "percent");
+
+function addonsScreen(state: BotState, pricing: PricingOverride, edit: boolean): OutMessage {
+  const sel = state.addons ?? {};
+  const count = Object.values(sel).filter((v) => v > 0).length;
+  const rows = ADDON_LIST.map((a) => {
+    const on = (sel[a.id] ?? 0) > 0;
+    const price = addonPrice(a.id, pricing);
+    const unit = a.unit ? `/${a.unit}` : "";
+    return [{ text: `${on ? "✅" : "◻️"} ${a.title} · ${price}₽${unit}`, data: `addon:${a.id}` }];
+  });
+  rows.push([{ text: count ? `Готово (${count}) →` : "Без доп. услуг →", data: "adone" }]);
+  return {
+    text: "Добавить доп. услуги? Отметьте нужные и нажмите «Готово».",
+    keyboard: rows,
+    edit,
+  };
+}
+
 function chunk<T>(arr: T[], size: number): T[][] {
   const out: T[][] = [];
   for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
@@ -102,39 +122,41 @@ function askContact(purpose: "order" | "list"): OutMessage {
   };
 }
 
-function confirmScreen(state: BotState, total: number): OutMessage {
+function confirmScreen(state: BotState, total: number, pricing: PricingOverride): OutMessage {
   const typeLabel = calcCleaningTypes.find((t) => t.id === state.cleaningType)?.label ?? "Уборка";
   const propLabel = propertyTypes.find((p) => p.id === state.propertyType)?.label ?? "Квартира";
+  const addons = selectedAddonList(
+    {
+      rooms: state.rooms ?? 1,
+      cleaningType: state.cleaningType ?? "regular",
+      propertyType: state.propertyType ?? "apartment",
+      addons: state.addons ?? {},
+    },
+    pricing
+  );
   const lines = [
     "Проверьте заказ:",
     "",
     `🧹 ${typeLabel} · ${state.rooms} комн. · ${propLabel}`,
+    addons.length ? `➕ ${addons.map((a) => a.title).join(", ")}` : "",
     `📅 ${state.date ? formatDateCard(state.date) : "—"}${state.time ? `, ${state.time}` : ""}`,
     `📍 ${state.address || "—"}`,
     state.comment ? `💬 ${state.comment}` : "",
     "",
     `Стоимость: ~${rub(total)}`,
-    "Это базовая цена — доп. услуги и точную сумму менеджер уточнит при подтверждении.",
+    "Точную сумму менеджер подтвердит перед выездом.",
+    "",
+    "Как оплатите?",
   ].filter(Boolean);
   return {
     text: lines.join("\n"),
     removeKeyboard: true,
     keyboard: [
-      [{ text: "✅ Подтвердить заказ", data: "confirm:yes" }],
+      [{ text: "💳 Оплатить картой", data: "confirm:pay" }],
+      [{ text: "💵 Оплата при уборке", data: "confirm:cash" }],
       [{ text: "✖️ Отменить", data: "confirm:no" }],
     ],
   };
-}
-
-async function orderTotal(state: BotState): Promise<number> {
-  const pricing = await getPricing();
-  const calcState: CalcState = {
-    rooms: state.rooms ?? 1,
-    cleaningType: state.cleaningType ?? "regular",
-    propertyType: state.propertyType ?? "apartment",
-    addons: {},
-  };
-  return computeCalc(calcState, pricing).total;
 }
 
 /* ─── Машина состояний ────────────────────────────────────── */
@@ -174,8 +196,18 @@ export async function handleFlow(
         return { state: { ...state, step: "rooms", cleaningType: value as BotState["cleaningType"] }, messages: [askRooms()] };
       case "rooms":
         return { state: { ...state, step: "property", rooms: Number(value) }, messages: [askProperty()] };
-      case "prop":
-        return { state: { ...state, step: "date", propertyType: value as BotState["propertyType"] }, messages: [askDate()] };
+      case "prop": {
+        const next = { ...state, step: "addons" as const, propertyType: value as BotState["propertyType"], addons: state.addons ?? {} };
+        return { state: next, messages: [addonsScreen(next, await getPricing(), false)] };
+      }
+      case "addon": {
+        const addons = { ...(state.addons ?? {}) };
+        addons[value] = addons[value] ? 0 : 1; // тоггл вкл/выкл
+        const next = { ...state, addons };
+        return { state: next, messages: [addonsScreen(next, await getPricing(), true)] };
+      }
+      case "adone":
+        return { state: { ...state, step: "date" }, messages: [askDate()] };
       case "date":
         return { state: { ...state, step: "time", date: value }, messages: [askTime()] };
       case "time":
@@ -183,28 +215,57 @@ export async function handleFlow(
       case "comment":
         if (value === "skip") return { state: { ...state, step: "contact", comment: "" }, messages: [askContact("order")] };
         break;
-      case "confirm":
+      case "confirm": {
         if (value === "no") return { state: reset(), messages: [{ text: "Заказ отменён." }, greeting()] };
-        if (value === "yes") {
-          if (state.step !== "confirm" || !state.phone) {
-            return { state, messages: [greeting()] };
+        if ((value === "pay" || value === "cash") && state.step === "confirm" && state.phone) {
+          const payment = value === "pay" ? "card" : "cash";
+          const { id, total } = await createBotOrder(platform, state, payment);
+          const num = id.slice(0, 8).toUpperCase();
+          const footer = [
+            "",
+            `Заказ уже в вашем личном кабинете на сайте — войдите по этому же номеру телефона:`,
+            `${SITE}/profile`,
+          ];
+
+          if (payment === "cash") {
+            const done: OutMessage = {
+              text: [
+                "Заказ оформлен! 🎉",
+                `Номер: ${num} · к оплате ~${rub(total)} (при уборке).`,
+                `Менеджер свяжется с вами по телефону ${state.phone}.`,
+                ...footer,
+              ].join("\n"),
+              removeKeyboard: true,
+            };
+            return { state: reset(), messages: [done, greeting()] };
           }
-          const { id, total } = await createBotOrder(platform, state);
-          const done: OutMessage = {
-            text: [
-              "Заказ оформлен! 🎉",
-              `Номер заказа: ${id.slice(0, 8).toUpperCase()}`,
-              "",
-              `Стоимость: ~${rub(total)}. Менеджер свяжется с вами по телефону ${state.phone}.`,
-              "",
-              `Заказ уже в вашем личном кабинете на сайте — войдите по этому же номеру телефона:`,
-              `${SITE}/profile`,
-            ].join("\n"),
-            removeKeyboard: true,
-          };
+
+          // Оплата картой — ссылка ЮKassa
+          const pay = await createBotPaymentLink(id, total);
+          const done: OutMessage = pay.test
+            ? {
+                text: [
+                  "Заказ оформлен! 🎉",
+                  `Номер: ${num}. Оплата в тестовом режиме — заказ отмечен оплаченным.`,
+                  `Менеджер свяжется с вами по телефону ${state.phone}.`,
+                  ...footer,
+                ].join("\n"),
+                removeKeyboard: true,
+              }
+            : {
+                text: [
+                  "Заказ оформлен! 🎉",
+                  `Номер: ${num}. Осталось оплатить ${rub(total)} по кнопке ниже.`,
+                  `После оплаты менеджер свяжется с вами по телефону ${state.phone}.`,
+                  ...footer,
+                ].join("\n"),
+                removeKeyboard: true,
+                keyboard: [[{ text: `💳 Оплатить ${rub(total)}`, url: pay.url }]],
+              };
           return { state: reset(), messages: [done, greeting()] };
         }
-        break;
+        return { state, messages: [greeting()] };
+      }
     }
     // callback не совпал с текущим шагом — мягко подсказываем
     return { state, messages: [resendCurrent(state)] };
@@ -217,8 +278,9 @@ export async function handleFlow(
       return { state: reset(), messages: [{ text: list, removeKeyboard: true }, greeting()] };
     }
     // основной сценарий: телефон → подтверждение
-    const total = await orderTotal(st);
-    return { state: { ...st, step: "confirm" }, messages: [confirmScreen(st, total)] };
+    const pricing = await getPricing();
+    const total = await botOrderTotal(st);
+    return { state: { ...st, step: "confirm" }, messages: [confirmScreen(st, total, pricing)] };
   }
 
   if (input.kind === "text") {
@@ -246,6 +308,8 @@ function resendCurrent(state: BotState): OutMessage {
       return askRooms();
     case "property":
       return askProperty();
+    case "addons":
+      return { text: "Отметьте доп. услуги кнопками выше или нажмите «Готово»." };
     case "date":
       return askDate();
     case "time":

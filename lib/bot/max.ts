@@ -24,7 +24,7 @@ interface MaxAttachment {
 interface MaxMessage {
   sender?: { user_id?: number; name?: string };
   recipient?: { chat_id?: number; user_id?: number };
-  body?: { text?: string; attachments?: MaxAttachment[] };
+  body?: { mid?: string; text?: string; attachments?: MaxAttachment[] };
 }
 interface MaxUpdate {
   update_type?: string;
@@ -38,6 +38,7 @@ export interface MaxParsed {
   chatId: string;
   input: NormalizedInput;
   callbackId?: string;
+  messageId?: string;
 }
 
 /** Достаём телефон из вложения-контакта (vCard или max_info). */
@@ -64,6 +65,7 @@ export function parseMaxUpdate(body: MaxUpdate): MaxParsed | null {
       chatId: String(chatId),
       input: { kind: "callback", data: body.callback.payload },
       callbackId: body.callback.callback_id,
+      messageId: body.message?.body?.mid,
     };
   }
 
@@ -100,18 +102,27 @@ export function parseMaxUpdate(body: MaxUpdate): MaxParsed | null {
 
 function keyboardAttachment(keyboard: BotButton[][]) {
   const buttons = keyboard.map((row) =>
-    row.map((b) =>
-      b.contact
-        ? { type: "request_contact", text: b.text }
-        : { type: "callback", text: b.text, payload: b.data ?? b.text }
-    )
+    row.map((b) => {
+      if (b.contact) return { type: "request_contact", text: b.text };
+      if (b.url) return { type: "link", text: b.text, url: b.url };
+      return { type: "callback", text: b.text, payload: b.data ?? b.text };
+    })
   );
   return { type: "inline_keyboard", payload: { buttons } };
 }
 
-export async function sendMax(chatId: string, messages: OutMessage[]): Promise<void> {
+export async function sendMax(chatId: string, messages: OutMessage[], sourceMessageId?: string): Promise<void> {
   for (const msg of messages) {
     const attachments = msg.keyboard && msg.keyboard.length ? [keyboardAttachment(msg.keyboard)] : [];
+    // Тоггл допуслуг — редактируем то же сообщение (PUT /messages?message_id=).
+    if (msg.edit && sourceMessageId) {
+      await fetch(url("/messages", { message_id: sourceMessageId }), {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: msg.text, attachments }),
+      }).catch((e) => console.error("[bot:max] edit failed", e));
+      continue;
+    }
     await fetch(url("/messages", { chat_id: chatId }), {
       method: "POST",
       headers: { "Content-Type": "application/json" },

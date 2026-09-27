@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     if (parsed.callbackId) await answerMaxCallback(parsed.callbackId);
 
     const messages = await processUpdate("max", parsed.chatId, parsed.input);
-    await sendMax(parsed.chatId, messages);
+    await sendMax(parsed.chatId, messages, parsed.messageId);
   } catch (err) {
     console.error("[bot:max] webhook error", err);
   }

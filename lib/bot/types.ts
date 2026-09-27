@@ -7,10 +7,11 @@ import type { CalcCleaningType, PropertyType } from "@/lib/calc";
 
 export type BotPlatform = "telegram" | "max";
 
-/** Кнопка. С `data` — callback-кнопка; `contact: true` — запрос телефона. */
+/** Кнопка. `data` — callback; `url` — ссылка; `contact: true` — запрос телефона. */
 export interface BotButton {
   text: string;
   data?: string;
+  url?: string;
   contact?: boolean;
 }
 
@@ -20,6 +21,8 @@ export interface OutMessage {
   keyboard?: BotButton[][];
   /** Убрать нижнюю клавиатуру (после запроса контакта). */
   removeKeyboard?: boolean;
+  /** Редактировать сообщение, с которого пришёл callback (для тоггла допуслуг). */
+  edit?: boolean;
 }
 
 /** Нормализованный вход из любого мессенджера. */
@@ -35,6 +38,7 @@ export type BotStep =
   | "type"
   | "rooms"
   | "property"
+  | "addons"
   | "date"
   | "time"
   | "address"
@@ -49,6 +53,7 @@ export interface BotState {
   cleaningType?: CalcCleaningType;
   rooms?: number;
   propertyType?: PropertyType;
+  addons?: Record<string, number>;
   date?: string;
   time?: string;
   address?: string;
